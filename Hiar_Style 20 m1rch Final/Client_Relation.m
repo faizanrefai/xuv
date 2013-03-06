@@ -1,0 +1,740 @@
+//
+//  Client_Relation.m
+//  HairStyleProj
+//
+//  Created by Vivek Rajput on 8/3/11.
+//  Copyright 2011 __MyCompanyName__. All rights reserved.
+//
+
+#import "Client_Relation.h"
+
+#import "Birthday_Reminder.h"
+#import "Absentees_Reminder.h"
+#import "AddMail_Temp.h"
+#import "Email.h"
+#import "HomeDire.h"
+#import "Delete_email_temp.h"
+#import "ReportHomeScreen.h"
+#import "SettingHome.h"
+#import "CustomBadge.h"
+
+
+@implementation Client_Relation
+
+/*
+ // The designated initializer.  Override if you create the controller programmatically and want to perform customization that is not appropriate for viewDidLoad.
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
+        // Custom initialization
+    }
+    return self;
+}
+*/
+
+-(void)viewWillAppear:(BOOL)animated{
+    objappdel=(Hiar_Style_NewAppDelegate *)[[UIApplication sharedApplication]delegate];
+	[objappdel createEditableCopyOfDatabaseIfNeeded];
+	
+	self.navigationController.navigationBar.hidden=TRUE;
+	strCountAbsence=@"0";
+    strCountBirthdate=@"0";
+    
+    arrayOfCharacters =[[NSMutableArray alloc]init];
+                        
+                        
+    [self showdata];
+	
+	self.view.backgroundColor=[UIColor groupTableViewBackgroundColor];
+	
+	arr1=[[NSArray alloc]initWithObjects:@"Upcoming Birthdays",@"Absent Client Reminders",nil];
+	arr3=[[NSArray alloc]initWithObjects:@"Happy Birth day",@"Miss U",nil];
+	
+    [tblreminder reloadData];
+    
+    
+}
+
+
+-(void)countBirthdayList{
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSString *path = [documentsDirectory stringByAppendingPathComponent:@"Hairstyle.sqlite"];
+	
+	
+	
+	
+    NSDate *earlierDate1;
+    
+    
+	
+	NSDate *now1 = [NSDate date];
+	NSDate *now2 = [NSDate date];
+	
+    
+    NSString *strBdayrem;
+    strBdayrem=[[NSUserDefaults standardUserDefaults]valueForKey:@"BirthdayReminder"];
+    if ([strBdayrem isEqualToString:@"Off"]) {
+        earlierDate1= now1 ;
+    }
+    
+    else if ([strBdayrem isEqualToString:@"At time of event"]) {
+        earlierDate1= now1 ;
+        
+    }
+    else if ([strBdayrem isEqualToString:@"1 day prior"]) {
+        earlierDate1= [now1 dateByAddingTimeInterval:(+1*24*60*60)];
+    }
+    else if ([strBdayrem isEqualToString:@"2 days prior"]) {
+        earlierDate1= [now1 dateByAddingTimeInterval:(+2*24*60*60)];
+    }
+    else if ([strBdayrem isEqualToString:@"1 week prior"]) {
+        earlierDate1= [now1 dateByAddingTimeInterval:(+7*24*60*60)];
+    }
+    else if ([strBdayrem isEqualToString:@"2 weeks prior"]) {
+        earlierDate1= [now1 dateByAddingTimeInterval:(+14*24*60*60)];
+    }
+    else if ([strBdayrem isEqualToString:@"3 weeks prior"]) {
+        earlierDate1= [now1 dateByAddingTimeInterval:(+21*24*60*60)];
+    }
+    else if ([strBdayrem isEqualToString:@"4 weeks prior"]) {
+        earlierDate1= [now1 dateByAddingTimeInterval:(+28*24*60*60)];
+    }
+    
+    else{
+        earlierDate1= now1 ;
+        
+    }
+	
+	//nslog(@"%@",earlierDate1);
+	
+	
+	
+	NSString *strDate1 = [NSString stringWithFormat:@"%@",earlierDate1];
+	NSArray *arr11 = [strDate1 componentsSeparatedByString:@" "];
+	NSString *str1;
+	str1 = [arr11 objectAtIndex:0];
+    
+    
+    NSString *strDate = [NSString stringWithFormat:@"%@",now2];
+	NSArray *arr = [strDate componentsSeparatedByString:@" "];
+	NSString *str;
+	str = [arr objectAtIndex:0];
+    
+    //NSString *condition=[NSString stringWithFormat:@"where Date<='%@' AND Date >= '%@'",str1,str];
+    
+	if (sqlite3_open([path UTF8String], &database) == SQLITE_OK) 
+	{
+		static sqlite3_stmt *statement;
+		statement = nil;
+		NSString *s = [NSString stringWithFormat:@"select COUNT(Cid) AS CountList from AddClient where Date <='%@' AND Date >= '%@'",str1,str];
+		//nslog(@"%@",s);
+		
+		if(sqlite3_prepare_v2(database, [s UTF8String], -1, &statement, NULL) == SQLITE_OK)
+		{
+			while(sqlite3_step(statement) == SQLITE_ROW)
+			{
+				// Read the data from the result row
+				
+				temp =[[NSMutableDictionary alloc]init];
+				if((char *)sqlite3_column_text(statement, 0)!=NULL){
+                    
+                    [temp setValue:[NSString stringWithUTF8String:(char *)sqlite3_column_text(statement, 0)] forKey:@"Counter"];
+                    strCountBirthdate=[[temp valueForKey:@"Counter"] copy] ;
+                   // [strCountBirthdate retain];
+                    
+                }
+				[temp release];
+				temp=nil;
+			}
+			
+		}
+		else
+		{
+			NSAssert1(0, @"Error while Execute statement. '%s'", sqlite3_errmsg(database));
+		}
+		
+		sqlite3_finalize(statement);
+		sqlite3_close(database);
+		
+	}
+	else 
+	{
+		sqlite3_close(database);
+		NSAssert1(0, @"Failed to open database with message '%s'.", sqlite3_errmsg(database));
+	}		
+
+
+}
+-(void)countAbsenselist{
+    objdatabase=[[DataBase alloc]init];
+    
+    
+    
+	NSDate *now1 = [NSDate date];
+	
+    NSString *strBdayrem;
+    strBdayrem=[[NSUserDefaults standardUserDefaults]valueForKey:@"EmailReminder"];
+    
+    NSDate *earlierDate1;
+    
+    
+    
+    
+    if ([strBdayrem isEqualToString:@"Off"]) {
+        earlierDate1=[now1 dateByAddingTimeInterval:(-30*24*60*60)];
+    }
+    
+    
+    else if ([strBdayrem isEqualToString:@"After 30 days"]) {
+        earlierDate1= [now1 dateByAddingTimeInterval:(-30*24*60*60)];
+    }
+    else if ([strBdayrem isEqualToString:@"After 60 days"]) {
+        earlierDate1= [now1 dateByAddingTimeInterval:(-60*24*60*60)];
+    }
+    else if ([strBdayrem isEqualToString:@"After 90 days"]) {
+        earlierDate1= [now1 dateByAddingTimeInterval:(-90*24*60*60)];
+    }
+    else if ([strBdayrem isEqualToString:@"After 120 days"]) {
+        earlierDate1= [now1 dateByAddingTimeInterval:(-120*24*60*60)];
+    }
+    
+    else{
+        earlierDate1= [now1 dateByAddingTimeInterval:(-30*24*60*60)]; 
+    }
+	
+    
+    
+    
+    
+	
+	//nslog(@"%@",earlierDate);
+	
+	
+	
+	NSString *strDate = [[NSString alloc] initWithFormat:@"%@",earlierDate1];
+	NSArray *arr = [strDate componentsSeparatedByString:@" "];
+	NSString *str;
+	str = [arr objectAtIndex:0];
+    
+    [strDate release];
+    
+    NSString *condition=[NSString stringWithFormat:@"where LastServiceList <'%@'",str];
+    
+    [objdatabase ShowDataForClientname:condition];
+    
+    strCountAbsence=[[NSString stringWithFormat:@"%d",[[objdatabase.catchArray valueForKey:@"name"]count]] copy];
+               	
+}
+
+
+// Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
+- (void)viewDidLoad {
+    [super viewDidLoad];
+	self.title=@"Client Relation";
+    strCountBirthdate=@"0";
+    
+    strCountAbsence=@"0";
+//    tblreminder = [[UITableView alloc]initWithFrame:CGRectMake(0,70, 320,100) style:UITableViewStyleGrouped];
+//	//[RegScroll addSubview:countryTable];
+//	tblreminder.delegate=self;
+//	tblreminder.dataSource=self;
+//	tblreminder.backgroundColor=[UIColor clearColor];
+//	//tblstate.d
+//	[self.view addSubview:tblreminder];
+//	tblreminder.hidden=FALSE;
+//	tblreminder.scrollEnabled=FALSE;
+	[tab setSelectedItem:[tab.items objectAtIndex:1]];
+    
+//    if([arremailtemp count]>0)
+//    {
+//        tblemail = [[UITableView alloc]initWithFrame:CGRectMake(0, 230, 320,460) style:UITableViewStyleGrouped];
+//        //[RegScroll addSubview:countryTable];
+//        tblemail.delegate=self;
+//        tblemail.dataSource=self;
+//        tblemail.backgroundColor=[UIColor clearColor];
+//        //tblstate.d
+//        [self.view addSubview:tblemail];
+//        tblemail.hidden=FALSE;
+//        //tblemail.scrollEnabled=FALSE;
+//        [tblemail reloadData];
+//        
+//    }
+//    else{
+//        tblemail.hidden=TRUE;
+//        
+//        
+//    }
+    
+	UIBarButtonItem *barBtnSearch = [[UIBarButtonItem alloc] initWithTitle:@"Home" style:UIBarButtonItemStyleBordered target:self action:@selector(searchResult1_clicked:)];
+	
+	self.navigationItem.leftBarButtonItem = barBtnSearch;
+	
+	self.navigationItem.leftBarButtonItem.enabled=TRUE;
+
+   	
+}
+-(IBAction)back{
+
+    [self.navigationController popViewControllerAnimated:YES];
+    
+
+}
+-(void)showdata{
+    
+    [objappdel  createEditableCopyOfDatabaseIfNeeded];
+    
+    
+    arremailtemp=nil;
+    
+	arremailtemp=[[NSMutableArray alloc]init];
+	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSString *path = [documentsDirectory stringByAppendingPathComponent:@"Hairstyle.sqlite"];
+	
+	
+    
+    objectsForCharacters = [[NSMutableDictionary alloc]init];
+	
+    for(char c='A';c<='Z';c++)
+        
+    {
+        arremailtemp=[[NSMutableArray alloc]init];
+        NSMutableString *query;
+        
+        query = [NSMutableString stringWithFormat:@"where Subject LIKE '%c",c];
+        
+        [query appendString:@"%'"];
+        
+        if (sqlite3_open([path UTF8String], &database) == SQLITE_OK) 
+        {
+            static sqlite3_stmt *statement;
+            statement = nil;
+            NSString *s = [NSString stringWithFormat:@"select * from EMailTemp %@",query];
+            //////nslog(@"%@",s);
+            
+            if(sqlite3_prepare_v2(database, [s UTF8String], -1, &statement, NULL) == SQLITE_OK)
+            {
+                while(sqlite3_step(statement) == SQLITE_ROW)
+                {
+                    // Read the data from the result row
+                    
+                    temp =[[NSMutableDictionary alloc]init];
+                    
+                    if((char *)sqlite3_column_text(statement, 1)!=NULL){
+                        
+                        
+                        
+                        [temp setValue:[NSString stringWithUTF8String:(char *)sqlite3_column_text(statement, 1)] forKey:@"subject"];
+                    }
+                    if((char *)sqlite3_column_text(statement, 2)!=NULL){
+                        
+                        
+                        [temp setValue:[NSString stringWithUTF8String:(char *)sqlite3_column_text(statement, 2)] forKey:@"message"];
+                    }				
+                    [arremailtemp addObject:temp];
+                    [temp release];
+                    temp=nil;
+                }
+                
+            }
+            else
+            {
+                NSAssert1(0, @"Error while Execute statement. '%s'", sqlite3_errmsg(database));
+            }
+            
+            sqlite3_finalize(statement);
+            sqlite3_close(database);
+            
+        }
+        else 
+        {
+            sqlite3_close(database);
+            NSAssert1(0, @"Failed to open database with message '%s'.", sqlite3_errmsg(database));
+        }	
+        
+        
+              
+     //   [arrlistname addObject:objdatabase.catchArray];
+        
+        if([arremailtemp  count] >0)
+            
+        {
+            
+            [arrayOfCharacters addObject:[NSString stringWithFormat:@"%c",c]];
+            
+            
+            
+            [objectsForCharacters setObject:arremailtemp  forKey:[NSString stringWithFormat:@"%c",c]];
+            
+            
+            
+            
+        }
+        [arremailtemp release];
+        
+    }
+
+	
+	
+
+	
+    
+    [self countAbsenselist];
+    [self countBirthdayList];
+    if([objectsForCharacters count]>0)
+    {
+        [tblemail reloadData];
+    }
+
+	
+    [tblreminder reloadData];
+    
+}
+
+-(IBAction)searchResult1_clicked:(id)sender
+{
+	[self.navigationController popViewControllerAnimated:YES];
+	
+	
+}
+-(IBAction)click{
+
+	if(seg.selectedSegmentIndex==0){
+		
+        if(objAdd)
+        {
+        
+            [objAdd release];
+            
+        }
+        
+        objAdd=[[AddMail_Temp alloc]initWithNibName:@"AddMail_Temp" bundle:nil];
+        
+		[self.navigationController pushViewController:objAdd animated:YES];
+        
+        
+        
+		
+				
+	}
+if (seg.selectedSegmentIndex==1) {
+
+    //[objAdd.view removeFromSuperview];
+	
+    
+    if(objDeleteMail)
+    {
+    
+        [objDeleteMail release];
+        
+    }
+    objDeleteMail=[[Delete_email_temp alloc]initWithNibName:@"Delete_email_temp" bundle:nil];
+    
+    [self.navigationController pushViewController:objDeleteMail animated:YES];
+        
+    
+	
+}
+
+}
+
+/*
+// Override to allow orientations other than the default portrait orientation.
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    // Return YES for supported orientations
+    return (interfaceOrientation == UIInterfaceOrientationPortrait);
+}
+ */
+
+- (NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView {
+    
+    NSMutableArray *toBeReturned = [[NSMutableArray alloc]init];
+    if(tableView==tblemail)
+    {
+    
+    if([objectsForCharacters count]==0)
+    {
+    }
+    else{
+    for(char c = 'A';c<='Z';c++)
+        
+        [toBeReturned addObject:[NSString stringWithFormat:@"%c",c]];
+    
+    //  NSLog(@"Header %@",toBeReturned);
+    }
+    }
+    return toBeReturned;
+    
+}
+- (NSInteger)tableView:(UITableView *)tableView sectionForSectionIndexTitle:(NSString *)title atIndex:(NSInteger)index {
+    if(tableView==tblreminder)
+    {
+    }
+    else{
+
+    NSInteger count = 0;
+    
+    for(NSString *character in arrayOfCharacters)
+        
+    {
+        
+        if([character isEqualToString:title])
+            
+            return count;
+        
+        count ++;
+        
+    }
+    }
+    return 0;// in case of some eror donot crash d application
+    
+}
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+    if(tableView==tblemail){
+           if([arrayOfCharacters count]==0)
+            
+            return @"";
+        
+        return [arrayOfCharacters objectAtIndex:section];
+    }
+    else{
+    
+        return @"";
+        
+    }
+   
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    
+    if(tableView==tblemail){
+    return [arrayOfCharacters count];
+    }
+    else
+    {
+        return 1;
+        
+        }
+}
+	
+
+
+-(NSInteger) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+	if(tableView==tblemail){
+	       return [[objectsForCharacters objectForKey:[arrayOfCharacters objectAtIndex:section]]count];
+            
+            
+        
+		
+	}
+else {
+	return [arr1 count];
+	
+}
+
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+	static NSString *CellTableIdentifier = @"CellTableIdentifier";
+   // UIImageView *cellImg = [[[UIImageView alloc] initWithFrame:CGRectMake(0,0,300, 40)] autorelease];
+//    [cellImg setImage:[UIImage imageNamed:@"DireCellImage.png"]];
+    
+      
+	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellTableIdentifier];
+	if (cell == nil) {
+		
+//		CGRect cellFrame = CGRectMake(0,0,300,65);
+		cell = [[[UITableViewCell alloc]  initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellTableIdentifier] autorelease];
+		
+			
+			CGRect nameLabelRect = CGRectMake(250,10,200,15);
+			UILabel *nameLabel = [[UILabel alloc] initWithFrame:nameLabelRect];		
+			nameLabel.tag=kNameValueTag;
+			nameLabel.backgroundColor=[UIColor clearColor];
+			
+			nameLabel.textAlignment = UITextAlignmentLeft;
+			nameLabel.font = [UIFont fontWithName:@"Arial" size:14];
+			[cell.contentView addSubview: nameLabel];
+			[nameLabel release];		
+  //             [cell.contentView addSubview:cellImg];  
+         
+		}
+    
+    
+    cell.textLabel.font = [UIFont fontWithName:@"Arial" size:14];
+    
+    cell.textLabel.font=[UIFont boldSystemFontOfSize:14];
+    
+    [cell.textLabel setBackgroundColor:[UIColor clearColor]];
+    
+		if(tableView ==tblreminder){
+			if(indexPath.row==0)
+            {
+            CustomBadge *customBadge1 = [CustomBadge customBadgeWithString:[NSString stringWithFormat:@"%@",strCountBirthdate]withStringColor:[UIColor whiteColor] 
+                                                            withInsetColor:[UIColor redColor] 
+                                                            withBadgeFrame:YES 
+                                                       withBadgeFrameColor:[UIColor whiteColor] 
+                                                                 withScale:1.0
+                                                               withShining:YES];		
+            
+            [customBadge1 setFrame:CGRectMake(250, 10, customBadge1.frame.size.width, customBadge1.frame.size.height)];
+            [cell.contentView addSubview:customBadge1];
+            }
+            else{
+            
+                CustomBadge *customBadge1 = [CustomBadge customBadgeWithString:[NSString stringWithFormat:@"%@",strCountAbsence] 
+                                                               withStringColor:[UIColor whiteColor] 
+                                                                withInsetColor:[UIColor redColor] 
+                                                                withBadgeFrame:YES 
+                                                           withBadgeFrameColor:[UIColor whiteColor] 
+                                                                     withScale:1.0
+                                                                   withShining:YES];		
+                
+                [customBadge1 setFrame:CGRectMake(250, 10, customBadge1.frame.size.width, customBadge1.frame.size.height)];
+                [cell.contentView addSubview:customBadge1];
+                
+            }
+          //  UILabel *name = (UILabel *)[cell.contentView viewWithTag:kNameValueTag];
+			//name.text = @"5";
+			
+			cell.textLabel.text = [arr1 objectAtIndex:indexPath.row];
+			
+		
+		}
+		
+		if(tableView==tblemail){
+			cell.textLabel.text = [NSString stringWithFormat:@"%@",[[[objectsForCharacters objectForKey:[arrayOfCharacters objectAtIndex:indexPath.section]] valueForKey:@"subject"] objectAtIndex:indexPath.row]];
+			
+			
+		}
+	cell.accessoryType=UITableViewCellAccessoryDisclosureIndicator;
+	cell.selectionStyle=UITableViewCellSelectionStyleNone;
+    
+	return cell;
+	
+
+}
+
+
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+	if(tableView==tblreminder){
+	
+		
+		switch (indexPath.row) {
+			case 0:
+			{			
+			
+				if(objBirthday_Reminder)
+                {
+                    [objBirthday_Reminder release];
+                    
+                
+                }
+				objBirthday_Reminder=[[Birthday_Reminder alloc]initWithNibName:@"Birthday_Reminder" bundle:nil];
+				[self.navigationController pushViewController:objBirthday_Reminder animated:YES];
+//			
+			}	
+			
+				break;
+		case 1:
+			{
+				if(objAbsentees_Reminder)
+                {
+				[objAbsentees_Reminder release];
+				}
+                
+                
+                    objAbsentees_Reminder=[[Absentees_Reminder alloc]initWithNibName:@"Absentees_Reminder" bundle:nil];
+				[self.navigationController pushViewController:objAbsentees_Reminder animated:YES];
+				
+			}	
+				break;
+				
+			default:
+				break;
+		}
+	}
+	
+	if(tableView==tblemail)
+	{
+       objappdel.strselect=@"Emailtemp";
+        objappdel.strSubject=[NSString stringWithFormat:@"%@",[[[objectsForCharacters objectForKey:[arrayOfCharacters objectAtIndex:indexPath.section]]valueForKey:@"subject"] objectAtIndex:indexPath.row]];
+        
+        
+          objappdel.strMessage=[NSString stringWithFormat:@"%@",[[[objectsForCharacters objectForKey:[arrayOfCharacters objectAtIndex:indexPath.section]]valueForKey:@"message"] objectAtIndex:indexPath.row]];        
+       if(objSendMail)
+       {
+           [objSendMail release];
+       }
+    
+        objSendMail=[[SendMail alloc]initWithNibName:@"SendMail" bundle:nil];
+        [self.navigationController pushViewController:objSendMail animated:YES];
+               
+//		MFMailComposeViewController* controller = [[MFMailComposeViewController alloc] init];
+//		controller.mailComposeDelegate = self;
+//		[controller setSubject:@"My Subject"];
+//		[controller setMessageBody:@"Hello there." isHTML:NO]; 
+//		if (controller) [self presentModalViewController:controller animated:YES];
+//		[controller release];
+//		
+		//Email *obj=[[Email alloc]initWithNibName:@"Email" bundle:nil];
+//		[self.navigationController pushViewController:obj animated:YES];
+//		[obj release];
+//		
+	}
+//		
+//	
+	
+
+}
+
+
+-(IBAction)settings{
+
+if(objSettingHome)
+{
+
+    [objSettingHome release];
+    
+
+}
+	objSettingHome =[[SettingHome alloc]initWithNibName:@"SettingHome" bundle:nil];
+    [self.navigationController pushViewController:objSettingHome animated:YES];
+    
+    
+	
+}
+
+- (void)mailComposeController:(MFMailComposeViewController*)controller  
+          didFinishWithResult:(MFMailComposeResult)result 
+                        error:(NSError*)error;
+{
+	if (result == MFMailComposeResultSent) {
+		//nslog(@"It's away!");
+	}
+	[self dismissModalViewControllerAnimated:YES];
+}
+
+- (void)viewDidUnload {
+    [super viewDidUnload];
+    // Release any retained subviews of the main view.
+    // e.g. self.myOutlet = nil;
+}
+
+
+- (void)dealloc {
+    [super dealloc];
+	
+	[arremailtemp release];
+	
+	[temp release];
+	[arr1 release];
+	[arr2 release];
+	[arr3 release];
+	
+}
+
+
+@end

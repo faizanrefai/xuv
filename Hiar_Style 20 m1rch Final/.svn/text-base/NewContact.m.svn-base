@@ -1,0 +1,728 @@
+//
+//  NewContact.m
+//  Hiar_Style_New
+//
+//  Created by Vivek Rajput on 8/12/11.
+//  Copyright 2011 __MyCompanyName__. All rights reserved.
+//
+
+#import "NewContact.h"
+static const CGFloat MINIMUM_SCROLL_FRACTION = 0.2;
+static const CGFloat MAXIMUM_SCROLL_FRACTION = 0.8;
+static const CGFloat KEYBOARD_ANIMATION_DURATION = 0.3;
+
+
+@implementation NewContact
+@synthesize scrlview;
+
+/*
+ // The designated initializer.  Override if you create the controller programmatically and want to perform customization that is not appropriate for viewDidLoad.
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
+        // Custom initialization
+    }
+    return self;
+}
+*/
+
+
+// Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
+- (void)viewDidLoad {
+    [super viewDidLoad];
+	
+	self.navigationController.navigationBar.hidden=TRUE;
+	
+    datepickertoolbar.hidden=TRUE;
+    
+	objappde=(Hiar_Style_NewAppDelegate *)[[UIApplication sharedApplication]delegate];
+	[objappde createEditableCopyOfDatabaseIfNeeded];
+	
+	[scrlview setScrollEnabled:YES];
+	[scrlview setContentSize:CGSizeMake(320, 600)];
+			
+	self.view.backgroundColor = [UIColor groupTableViewBackgroundColor];
+	
+    
+    CGRect pickerFrame = CGRectMake(0,300,0,0);
+    
+    myPicker = [[UIDatePicker alloc] initWithFrame:pickerFrame];
+    
+    myPicker.datePickerMode=UIDatePickerModeDate;
+    
+    
+    [myPicker addTarget:self action:@selector(pickerChanged:)forControlEvents:UIControlEventValueChanged];
+    
+    [self.view addSubview:myPicker];
+    
+    [myPicker release]; 
+    myPicker.hidden=TRUE;
+    
+	
+	}
+
+
+-(void)viewWillDisappear:(BOOL)animated {
+
+k=0;
+
+}
+-(IBAction)searchResult1_clicked:(id)sender
+{
+	
+	[txtbdate resignFirstResponder];
+	
+	[txtadd resignFirstResponder];
+	[txtcmpn resignFirstResponder];
+	[txtemail resignFirstResponder];
+	[txtfname resignFirstResponder];
+	[txtlname resignFirstResponder];
+	[txthomenum resignFirstResponder];
+	[txtmobnum resignFirstResponder];
+	[txtnotes resignFirstResponder];		
+   
+    [objappde.navigationController dismissModalViewControllerAnimated:YES];
+    
+	
+	
+}
+- (BOOL)validateEmailWithString:(NSString*)email11
+{
+    NSString *emailRegex = @"[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}"; 
+    NSPredicate *emailTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", emailRegex]; 
+    return [emailTest evaluateWithObject:email11];
+}
+-(IBAction)done{
+	
+    
+    
+    BOOL mail;
+    mail= [self validateEmailWithString:[NSString stringWithFormat:@"%@",txtemail.text]];
+    
+    
+    if(![txtemail.text isEqualToString:@""])
+    {
+        
+        
+        if(mail==FALSE)
+        {
+            
+            UIAlertView *alert111 = [[UIAlertView alloc] initWithTitle:@"Please enter valid Email address" message:nil delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            [alert111 show];
+            [alert111 release];
+            donevalue=1;
+            
+        }
+        
+        else{
+        
+            donevalue=0;
+            
+            
+        }
+        
+    } 
+  
+    
+   else if([txtfname.text isEqualToString:@""] && [txtlname.text isEqualToString:@""]&&[txtadd.text isEqualToString:@""]&&[txtbdate.text isEqualToString:@""]&&[txtcmpn.text isEqualToString:@""]&&[txtemail.text isEqualToString:@""]&& [txthomenum.text isEqualToString:@""]&&[txtmobnum.text isEqualToString:@""]&&[txtnotes.text isEqualToString:@""]&&!im)
+   {donevalue=1;
+       
+		UIAlertView *alert1=[[UIAlertView alloc]initWithTitle:@"" message:@"Please Enter Fields" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:nil];
+		[alert1 show];
+		[alert1 release];
+		
+	}
+   else{
+       
+       donevalue=0;
+       
+       
+   }
+   if(!donevalue==1)
+   {       
+        
+        [UIImageJPEGRepresentation(imageView.image , 1.0) writeToFile:dataFilePath atomically:YES];
+        [dataFilePath release];
+		NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+		NSString *documentsDirectory = [paths objectAtIndex:0];
+		NSString *path = [documentsDirectory stringByAppendingPathComponent:@"Hairstyle.sqlite"];
+		
+		if (sqlite3_open([path UTF8String], &database) == SQLITE_OK) 
+		{
+			
+			static sqlite3_stmt *statement;
+			statement = nil;
+			
+			
+			const char *sql="insert into AddClient(Image,First_Name,Last_Name,Company,Home_Phone,Mobile_Phone,Address,Email,Notes,Date,LastServiceList) values(?,?,?,?,?,?,?,?,?,?,?)";
+			
+			if(sqlite3_prepare_v2(database, sql , -1, &statement, NULL) == SQLITE_OK)
+			{
+				//nslog(@"%@",reminder);
+				
+				sqlite3_bind_text(statement, 1, [picname UTF8String], -1, SQLITE_TRANSIENT);
+				sqlite3_bind_text(statement, 2, [txtfname.text UTF8String], -1, SQLITE_TRANSIENT);
+				sqlite3_bind_text(statement, 3, [txtlname.text UTF8String], -1, SQLITE_TRANSIENT);
+				sqlite3_bind_text(statement,  4, [txtcmpn.text UTF8String], -1, SQLITE_TRANSIENT);
+				sqlite3_bind_text(statement, 5,[txthomenum.text UTF8String], -1, SQLITE_TRANSIENT);
+				sqlite3_bind_text(statement, 6, [txtmobnum.text UTF8String], -1, SQLITE_TRANSIENT);
+				sqlite3_bind_text(statement, 7, [txtadd.text UTF8String], -1, SQLITE_TRANSIENT);
+				sqlite3_bind_text(statement, 8, [txtemail.text UTF8String], -1, SQLITE_TRANSIENT);
+				sqlite3_bind_text(statement, 9, [txtnotes.text UTF8String], -1, SQLITE_TRANSIENT);
+				sqlite3_bind_text(statement, 10, [txtbdate.text UTF8String], -1, SQLITE_TRANSIENT);
+				sqlite3_bind_text(statement, 11, [@" " UTF8String], -1, SQLITE_TRANSIENT);
+				
+				
+				txtadd.text=@""; 
+				txtcmpn.text=@"";
+				txtemail.text=@"";
+				txtfname.text=@"";
+				txtlname.text=@"";
+				txthomenum.text=@"";
+				txtmobnum.text=@"";
+				txtnotes.text=@"";
+				txtbdate.text=@"";
+				
+				[txtbdate resignFirstResponder];
+				
+				[txtadd resignFirstResponder];
+				[txtcmpn resignFirstResponder];
+				[txtemail resignFirstResponder];
+				[txtfname resignFirstResponder];
+				[txtlname resignFirstResponder];
+				[txthomenum resignFirstResponder];
+				[txtmobnum resignFirstResponder];
+				[txtnotes resignFirstResponder];	
+			
+						
+			}
+			else
+			{
+				
+				NSAssert1(0, @"Error while creating insert statement. '%s'", sqlite3_errmsg(database));
+			}
+			
+			if(sqlite3_step(statement) == SQLITE_DONE) 
+			{
+				sqlite3_finalize(statement);
+				
+				
+			}
+			else
+			{
+				NSAssert1(0, @"Error while inserting. '%s'", sqlite3_errmsg(database));
+			}
+			sqlite3_close(database);
+			
+		}
+		else 
+		{
+			sqlite3_close(database);
+			NSAssert1(0, @"Failed to open database with message '%s'.", sqlite3_errmsg(database));
+		}
+		
+
+        
+        [objappde.navigationController  dismissModalViewControllerAnimated:YES];
+        
+	}
+}
+
+
+-(IBAction) backgroundClick:(id)sender
+{
+	[sender resignFirstResponder];
+	[txtbdate resignFirstResponder];
+	
+	
+	[txtadd resignFirstResponder];
+	[txtcmpn resignFirstResponder];
+	[txtemail resignFirstResponder];
+	[txtfname resignFirstResponder];
+	[txtlname resignFirstResponder];
+	[txthomenum resignFirstResponder];
+	[txtmobnum resignFirstResponder];
+	[txtnotes resignFirstResponder];
+	
+}
+- (BOOL)textFieldShouldReturn:(UITextField *)textField
+{
+    [txtbdate resignFirstResponder];
+    
+    
+    [txtadd resignFirstResponder];
+    [txtcmpn resignFirstResponder];
+    [txtemail resignFirstResponder];
+    [txtfname resignFirstResponder];
+    [txtlname resignFirstResponder];
+    [txthomenum resignFirstResponder];
+    [txtmobnum resignFirstResponder];
+    [txtnotes resignFirstResponder];
+    [textField resignFirstResponder];
+    
+	return YES;
+    
+}    
+
+
+- (void)textFieldDidBeginEditing:(UITextField *)textField;        
+{	
+      
+    
+    if(textField == txtbdate)
+	{
+    }
+
+    else{
+    
+	CGRect textFieldRect =[self.view.window convertRect:textField.bounds fromView:textField];
+	CGRect viewRect =[self.view.window convertRect:self.view.bounds fromView:self.view];
+	
+	CGFloat midline = textFieldRect.origin.y +1.0 * textFieldRect.size.height;
+	CGFloat numerator =midline - viewRect.origin.y- MINIMUM_SCROLL_FRACTION * viewRect.size.height;
+	CGFloat denominator =(MAXIMUM_SCROLL_FRACTION - MINIMUM_SCROLL_FRACTION)* viewRect.size.height;
+	CGFloat heightFraction = numerator / denominator;
+	
+	animatedDistance = floor(162.0 * heightFraction);
+	
+	CGRect viewFrame =scrlview.frame;
+	
+	//self.view.frame;
+	
+	viewFrame.origin.y -= animatedDistance;
+	
+	[UIScrollView beginAnimations:nil context:NULL];
+	[UIScrollView setAnimationBeginsFromCurrentState:YES];
+	[UIScrollView setAnimationDuration:KEYBOARD_ANIMATION_DURATION];
+	
+	[self.scrlview setFrame:viewFrame];
+	
+	[UIScrollView commitAnimations];
+            }
+    }	
+
+-(IBAction)DoneDate{
+    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc]init]autorelease];
+	
+	[dateFormatter setDateFormat:@"yyyy-MM-dd"];
+	txtbdate.text = [dateFormatter  stringFromDate:myPicker.date];
+	
+	[UIView beginAnimations:nil context:NULL];
+	[UIView setAnimationDuration:0.3];
+	datepickertoolbar.frame = CGRectMake(0, 500, 320, 40);
+	myPicker.frame = CGRectMake(0,480, 320, 216);
+	[UIView commitAnimations];
+
+    
+
+}
+- (void)pickerChanged:(id)sender
+{
+    NSLog(@"value: %@",[sender date]);
+
+   // strdatepicker=[NSString string:@"%@",[sender date]];
+    
+}
+
+
+
+
+-(BOOL)textFieldShouldBeginEditing:(UITextField *)textField {
+
+    
+    if(textField == txtbdate)
+	{   
+        
+        [txtadd resignFirstResponder];
+        [txtcmpn resignFirstResponder];
+        [txtemail resignFirstResponder];
+        [txtfname resignFirstResponder];
+        [txtlname resignFirstResponder];
+        [txthomenum resignFirstResponder];
+        [txtmobnum resignFirstResponder];
+        [txtnotes resignFirstResponder];
+        [txtbdate resignFirstResponder];
+               
+        [UIView beginAnimations:nil context:NULL];
+        [UIView setAnimationDuration:0.3];
+        
+        myPicker.frame = CGRectMake(0,300, 320, 216);
+        datepickertoolbar.frame=CGRectMake(0, myPicker.frame.origin.y-50.0f, 320, 50);
+        
+        
+        [UIView commitAnimations];
+        myPicker.hidden=FALSE;
+        
+        datepickertoolbar.hidden=FALSE;
+        return NO;
+
+	}
+    
+
+    
+    
+    if((textField==txtmobnum)||(textField==txthomenum))
+    {
+        [txtbdate resignFirstResponder];
+        
+        
+        [txtadd resignFirstResponder];
+        [txtcmpn resignFirstResponder];
+        [txtemail resignFirstResponder];
+        [txtfname resignFirstResponder];
+        [txtlname resignFirstResponder];
+        
+        [txtnotes resignFirstResponder];
+        
+        
+        k=1;
+        
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 3.2) {
+            [[NSNotificationCenter defaultCenter] addObserver:self 
+                                                     selector:@selector(keyboardDidShow:) 
+                                                         name:UIKeyboardDidShowNotification 
+                                                       object:nil];		
+        } else {
+            [[NSNotificationCenter defaultCenter] addObserver:self 
+                                                     selector:@selector(keyboardWillShow:) 
+                                                         name:UIKeyboardWillShowNotification 
+                                                       object:nil];
+        }
+    }
+    else{
+        [txthomenum resignFirstResponder];
+        [txtmobnum resignFirstResponder];
+        k=0;
+        
+        doneButton.hidden=TRUE;
+        
+        
+    }
+    
+    return YES;
+    
+}
+- (void)keyboardWillShow:(NSNotification *)note {
+	// if clause is just an additional precaution, you could also dismiss it
+	if ([[[UIDevice currentDevice] systemVersion] floatValue] < 3.2) {
+		[self addButtonToKeyboard];
+	}
+}
+
+- (void)keyboardDidShow:(NSNotification *)note {
+	// if clause is just an additional precaution, you could also dismiss it
+	if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 3.2) {
+		[self addButtonToKeyboard];
+    }
+}
+- (void)addButtonToKeyboard {
+	// create custom button
+    if(k==1)
+    {
+        doneButton = [[UIButton buttonWithType:UIButtonTypeCustom] retain];
+        doneButton.frame = CGRectMake(0, 163, 106, 53);
+        doneButton.adjustsImageWhenHighlighted = NO;
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 3.0) {
+            [doneButton setImage:[UIImage imageNamed:@"DoneUp3.png"] forState:UIControlStateNormal];
+            [doneButton setImage:[UIImage imageNamed:@"DoneDown3.png"] forState:UIControlStateHighlighted];
+        } else {        
+            [doneButton setImage:[UIImage imageNamed:@"DoneUp.png"] forState:UIControlStateNormal];
+            [doneButton setImage:[UIImage imageNamed:@"DoneDown.png"] forState:UIControlStateHighlighted];
+        }
+        [doneButton addTarget:self action:@selector(doneButton:) forControlEvents:UIControlEventTouchUpInside];
+        // locate keyboard view
+        UIWindow* tempWindow = [[[UIApplication sharedApplication] windows] objectAtIndex:1];
+        UIView* keyboard;
+        for(int i=0; i<[tempWindow.subviews count]; i++) {
+            keyboard = [tempWindow.subviews objectAtIndex:i];
+            // keyboard found, add the button
+            if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 3.2) {
+                if([[keyboard description] hasPrefix:@"<UIPeripheralHost"] == YES)
+                    [keyboard addSubview:doneButton];
+            } else {
+                if([[keyboard description] hasPrefix:@"<UIKeyboard"] == YES)
+                    [keyboard addSubview:doneButton];
+            }
+        }
+    }
+}
+- (void)doneButton:(id)sender
+{
+    [txtmobnum  resignFirstResponder];
+    [txthomenum resignFirstResponder];
+    
+    
+}
+- (void)textFieldDidEndEditing:(UITextField *)textField
+{
+    if(textField == txtbdate)
+	{
+        [txtbdate resignFirstResponder];
+        
+        
+        [txtadd resignFirstResponder];
+        [txtcmpn resignFirstResponder];
+        [txtemail resignFirstResponder];
+        [txtfname resignFirstResponder];
+        [txtlname resignFirstResponder];
+        [txthomenum resignFirstResponder];
+        [txtmobnum resignFirstResponder];
+        [txtnotes resignFirstResponder];   
+    }
+    else{
+    
+    	CGRect viewFrame = scrlview.frame;
+	
+	//self.view.frame;
+	viewFrame.origin.y += animatedDistance;
+	
+	[UIScrollView beginAnimations:nil context:NULL];
+	[UIScrollView setAnimationBeginsFromCurrentState:YES];
+	[UIScrollView setAnimationDuration:KEYBOARD_ANIMATION_DURATION];
+	
+	[self.scrlview setFrame:viewFrame];
+	
+	[UIScrollView commitAnimations];
+	
+	}
+}
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event 
+{ 
+	[txtbdate resignFirstResponder];
+	
+	
+	[txtadd resignFirstResponder];
+	[txtcmpn resignFirstResponder];
+	[txtemail resignFirstResponder];
+	[txtfname resignFirstResponder];
+	[txtlname resignFirstResponder];
+	[txthomenum resignFirstResponder];
+	[txtmobnum resignFirstResponder];
+	[txtnotes resignFirstResponder];
+	
+	
+	[super touchesBegan:touches withEvent:event]; 
+} 
+-(IBAction)TakeButton:(id)sender
+{
+	UIActionSheet *actionsheet=[[UIActionSheet alloc] initWithTitle:@"" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Take Photo",@"Choose from Library",nil];
+	
+//	[actionsheet showInView:self.parentViewController.tabBarController.view];
+
+	[actionsheet showInView:self.view];
+    
+	[actionsheet release];
+}
+
+- (void) actionSheet:(UIActionSheet *)actionsheet clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+	// After saving iamge, dismiss camera
+	
+   
+  
+    
+   if (buttonIndex == 0) {
+        Camera=TRUE;
+        
+		UIImagePickerController *imagePicker = [[UIImagePickerController alloc] init];
+		imagePicker.delegate = self;
+        if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
+        {
+            imagePicker.sourceType = UIImagePickerControllerSourceTypeCamera;
+        }
+        else {
+            imagePicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+        }
+		imagePicker.editing=NO;
+		
+		[self presentModalViewController:imagePicker animated:YES];
+		
+		[imagePicker release];
+	}        
+	if(buttonIndex ==1) {
+		Camera=FALSE;
+        
+        UIImagePickerController *picker;
+		picker = [[UIImagePickerController alloc]init];
+		picker.delegate = self;
+		picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+		picker.editing=NO;
+		
+		
+		[self presentModalViewController:picker animated:YES];
+	}	
+	
+		[self dismissModalViewControllerAnimated:YES];	
+}
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info 
+{
+	[picker dismissModalViewControllerAnimated:YES];
+	
+    imageView.image = [info objectForKey:@"UIImagePickerControllerOriginalImage"];
+	imageView.hidden = TRUE;
+	//	NSString *date1,*date2;
+	//	NSString *picname1,*picname;
+	NSDate *date = [NSDate date];
+	NSDateFormatter* formatter = [[[NSDateFormatter alloc] init] autorelease];
+	[formatter setDateFormat:@"MMddYYHHMMSS"];
+	date1= [formatter stringFromDate:date];
+	date2=[date1 stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	picname1=[@"image" stringByAppendingString:date2];
+	picname=[[picname1 stringByAppendingString:@".jpg"]retain];
+	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+	NSString *documentsDirectory = [paths objectAtIndex:0];
+	dataFilePath = [[documentsDirectory stringByAppendingPathComponent:picname] retain];
+	
+    //[UIImagePNGRepresentation(imageView.image) writeToFile:dataFilePath atomically:YES ];
+	
+    
+    //[UIImageJPEGRepresentation(<#UIImage *image#>, <#CGFloat compressionQuality#>)
+   
+    //imageView.frame=CGRectMake(0,0,btnimage.frame.size.width,btnimage.frame.size.height);
+    
+
+    
+   // [self resizeImage:imageView.image width:btnimage.frame.size.width height:btnimage.frame.size.height];
+    
+  
+  
+    [btnimage setImage: imageView.image forState:UIControlStateNormal];
+    
+    
+    
+    
+    
+//    [btnimage setImage: [self resizeImage:imageView.image width:btnimage.frame.size.width height:btnimage.frame.size.height] forState:UIControlStateNormal];
+//    
+//    
+    if(Camera)
+    {
+    btnimage.imageView.transform=CGAffineTransformMakeRotation(M_PI / 2);
+    
+        btnimage.frame=CGRectMake(21, 32, 100, 100);
+        
+        Library =TRUE;
+        
+    
+    }
+    else{
+    if(Library)
+    {
+        btnimage.imageView.transform=CGAffineTransformMakeRotation(M_PI * 2);
+        btnimage.frame=CGRectMake(21, 32, 100, 100);
+        
+    
+    }
+    
+    }
+//    
+    
+    
+    
+	im=YES;
+   
+    
+    
+	//[dataFilePath release];
+    
+	//NSArray *myArray = [dataFilePath componentsSeparatedByString: @"/"];
+	//	NSString *fileName = (NSString*)[myArray lastObject];
+	//	////nslog(@"%@",fileName);
+	//	
+	//	[str appendString:@","];
+	//	[str appendString:fileName];
+	//	
+	//	NSArray *fileArray = [str componentsSeparatedByString:@","];
+	//	//	NSArray *fileArray = [str stringByTrimmingCharactersInSet: @"/"];
+	//	
+	//	//nslog(@"Arrar : %@",fileArray);
+	//	//nslog(@" str : %@",str);
+	
+    
+    [btnimage setImage: [self resizeImage:btnimage.imageView.image width:btnimage.frame.size.width height:btnimage.frame.size.height] forState:UIControlStateNormal];
+
+    
+    if(Camera)
+    {
+        btnimage.imageView.transform=CGAffineTransformMakeRotation(M_PI / 2);
+        
+        btnimage.frame=CGRectMake(21, 32, 100, 100);
+        
+        Library =TRUE;
+        
+        
+    }
+    else{
+        if(Library)
+        {
+            btnimage.imageView.transform=CGAffineTransformMakeRotation(M_PI * 2);
+            btnimage.frame=CGRectMake(21, 32, 100, 100);
+            
+            
+        }
+        
+    }
+
+    
+}	
+
+
+-(UIImage *)resizeImage:(UIImage *)image width:(int)width height:(int)height {
+	
+	CGImageRef imageRef = [image CGImage];
+	CGImageAlphaInfo alphaInfo;
+    alphaInfo= CGImageGetAlphaInfo(imageRef);
+	
+	//if (alphaInfo == kCGImageAlphaNone)
+    alphaInfo = kCGImageAlphaNoneSkipLast;
+	
+	CGContextRef bitmap = CGBitmapContextCreate(NULL, width, height, CGImageGetBitsPerComponent(imageRef), 4 * width, CGImageGetColorSpace(imageRef), alphaInfo);
+	CGContextDrawImage(bitmap, CGRectMake(0, 0, width, height), imageRef);
+	CGImageRef ref = CGBitmapContextCreateImage(bitmap);
+	UIImage *result = [UIImage imageWithCGImage:ref];
+	
+	CGContextRelease(bitmap);
+	CGImageRelease(ref);
+	
+	return result;	
+}
+
+-(IBAction)click{
+
+
+
+}
+
+
+/*
+// Override to allow orientations other than the default portrait orientation.
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    // Return YES for supported orientations
+    return (interfaceOrientation == UIInterfaceOrientationPortrait);
+}
+*/
+
+- (void)didReceiveMemoryWarning {
+    // Releases the view if it doesn't have a superview.
+    [super didReceiveMemoryWarning];
+    
+    // Release any cached data, images, etc that aren't in use.
+}
+
+- (void)viewDidUnload {
+    [super viewDidUnload];
+    // Release any retained subviews of the main view.
+    // e.g. self.myOutlet = nil;
+}
+
+
+- (void)dealloc {
+    [super dealloc];
+
+	[tableViewData release];
+	
+}
+
+
+@end

@@ -1,0 +1,307 @@
+//
+//  ContactDetail.m
+//  Hiar_Style_New
+//
+//  Created by Vivek Rajput on 8/11/11.
+//  Copyright 2011 __MyCompanyName__. All rights reserved.
+//
+
+#import "ContactDetail.h"
+#import "Client_History.h"
+#import "HomeDire.h"
+#import "Service_Listing.h"
+#import "Hiar_Style_NewAppDelegate.h"
+#import "UpdateClientDetail.h"
+@implementation ContactDetail
+@synthesize lblfname,lbllname,lblcmpn,lblhomenum,lblmobnum,lbladd,lblemail,lblnotes;
+
+/*
+ // The designated initializer.  Override if you create the controller programmatically and want to perform customization that is not appropriate for viewDidLoad.
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
+        // Custom initialization
+    }
+    return self;
+}
+*/
+
+
+// Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
+-(void)viewWillAppear:(BOOL)animated{
+
+	objappdel=(Hiar_Style_NewAppDelegate *)[[UIApplication sharedApplication]delegate];
+	[objappdel createEditableCopyOfDatabaseIfNeeded];
+    //  [objappdel.window addSubview:objappdel.tabmainsub.view];
+    
+    
+	[self showdata];
+	[tabhistory setSelectedItem:[tabhistory.items objectAtIndex:0]];
+    
+	UIBarButtonItem *barBtnSearch = [[UIBarButtonItem alloc] initWithTitle:@"Home" style:UIBarButtonItemStyleBordered target:self action:@selector(searchResult1_clicked:)];
+	
+	self.navigationItem.leftBarButtonItem = barBtnSearch;
+	self.navigationController.navigationBar.hidden=TRUE;
+	
+	
+	self.navigationItem.leftBarButtonItem.enabled=TRUE;
+	
+	self.view.backgroundColor=[UIColor groupTableViewBackgroundColor];
+	//tbl.layer.cornerRadius=0.5;
+	[scrlview setScrollEnabled:YES];
+	[scrlview setContentSize:CGSizeMake(320, 500)];
+	if([arrlist count]==0){
+	}
+     
+	else {
+		lblfname.text=[[arrlist objectAtIndex:0]valueForKey:@"name"];
+		lbllname.text=[[arrlist objectAtIndex:0]valueForKey:@"lname"];
+		lblcmpn.text=[[arrlist objectAtIndex:0]valueForKey:@"cmpnname"];
+        [tblContactDetail reloadData];
+        
+			}
+	
+	
+	NSString *strImage=[[arrlist objectAtIndex:0]valueForKey:@"image"];
+    
+    
+    if([strImage isEqualToString:@"(null)"]|| strImage==nil){
+        
+      //  imgview.image=nil;
+        
+        
+    }
+	else {
+		
+        
+        NSArray *dirArray = NSSearchPathForDirectoriesInDomains(NSCachesDirectory,    NSUserDomainMask, YES);
+
+		NSString *path1 = [NSString stringWithFormat:@"%@/%@", [dirArray objectAtIndex:0],[(NSDictionary *)[arrlist objectAtIndex:0]valueForKey:@"image"]];
+        
+        NSData *imageData1 = [[NSData alloc] initWithContentsOfURL:[NSURL fileURLWithPath:path1]];
+        image = [[UIImage alloc] initWithData:imageData1];
+       // [imgview setImage:image];
+      //  imgview.frame=CGRectMake(5, 13, 115, 115);
+        [imgview setImage:[self resizeImage:image width:imgview.frame.size.width height:imgview.frame.size.height]];
+        
+        
+               [imageData1 release];
+        
+       
+        
+        if(image.imageOrientation==UIImageOrientationRight)
+        {
+            
+            imgview.transform=CGAffineTransformMakeRotation(M_PI / 2);
+            
+            
+            
+        }
+        
+        else{
+            
+            imgview.transform=CGAffineTransformMakeRotation(M_PI * 2 );
+            
+            
+        }
+        
+            // [btnimage setImage:imgview.image forState:UIControlStateNormal];
+
+     [image release];
+    
+    }
+	
+
+}
+-(UIImage *)resizeImage:(UIImage *)image3 width:(int)width height:(int)height {
+
+    CGImageRef imageRef = [image3 CGImage];
+	CGImageAlphaInfo alphaInfo = CGImageGetAlphaInfo(imageRef);
+	
+	//if (alphaInfo == kCGImageAlphaNone)
+    alphaInfo = kCGImageAlphaNoneSkipLast;
+	
+	CGContextRef bitmap = CGBitmapContextCreate(NULL, width, height, CGImageGetBitsPerComponent(imageRef), 4 * width, CGImageGetColorSpace(imageRef), alphaInfo);
+	CGContextDrawImage(bitmap, CGRectMake(0, 0, width, height), imageRef);
+	CGImageRef ref = CGBitmapContextCreateImage(bitmap);
+	UIImage *result = [UIImage imageWithCGImage:ref];
+	
+	CGContextRelease(bitmap);
+	CGImageRelease(ref);
+	
+	return result;	
+
+}
+- (void)viewDidLoad {
+
+    [super viewDidLoad];
+	
+		
+	
+}
+-(void)showdata{
+	
+    objdatabase=[[DataBase alloc]init];
+    arrlist=[[NSMutableArray alloc]init];
+    
+		NSString *s = [NSString stringWithFormat:@"WHERE Cid=%@",objappdel.idvalue];
+	[objdatabase ShowDataForClientname:s];
+    
+    [arrlist addObjectsFromArray:objdatabase.catchArray];
+    
+
+}
+
+-(IBAction)searchResult1_clicked:(id)sender
+{
+    [objappdel.navigationController popViewControllerAnimated:YES];
+    
+//    objappdel.window.rootViewController = objappdel.navigationController;
+// 
+    //[obj release];
+    
+	
+}
+
+
+-(IBAction)edit{
+	
+    if(objupdate)
+    {
+    
+        [objupdate release];
+        
+    }
+    
+    objupdate=[[UpdateClientDetail alloc]initWithNibName:@"UpdateClientDetail" bundle:nil];
+    
+	[self.navigationController pushViewController:objupdate animated:YES];
+        
+	
+   // [obj release];
+    
+
+}
+-(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath   {
+
+if(indexPath.section==1)
+{
+
+    return 70;
+    
+}
+    return 40;
+    
+}
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 5;
+}
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    if(section==0)
+    {
+    return 2;
+    }
+    else{
+        return 1;
+    }
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    
+	
+	static NSString *cellIdentifier = @"MyIdentifire";
+    TableCell *cell = (TableCell*)[tableView dequeueReusableCellWithIdentifier:cellIdentifier];
+	
+	if(cell == nil)
+	{
+        [[NSBundle mainBundle] loadNibNamed:@"TableCell" owner:self options:nil];
+		cell=tblViewCell;
+		tblViewCell=nil;
+    } 
+
+    cell.MyLbl1.textColor=[UIColor blueColor];
+    cell.MyLbl1.frame=CGRectMake(10, 0, 90, 40);
+    
+    cell.myLbl2.frame=CGRectMake(120, 0, 200, 40);
+    cell.myLbl2.numberOfLines=0;
+    cell.myLbl2.font=[UIFont boldSystemFontOfSize:14];
+    
+    cell.myLbl2.lineBreakMode=UILineBreakModeWordWrap;
+    cell.MyLbl1.font=[UIFont fontWithName:@"Arial" size:14];
+    cell.myLbl2.font=[UIFont fontWithName:@"Arial" size:14];
+    cell.MyLbl1.textAlignment=UITextAlignmentRight;
+    
+    switch (indexPath.section) {
+        case 0: {
+            switch (indexPath.row) {
+                case 0 :
+                    
+                    cell.MyLbl1.text=@"Home";
+                    cell.myLbl2.text=[[arrlist objectAtIndex:0]valueForKey:@"homenum"];
+                    break;
+                case 1 :
+                    cell.MyLbl1.text=@"Mobile";
+                    cell.myLbl2.text=[[arrlist objectAtIndex:0]valueForKey:@"mobnum"];            
+                    
+                    break;
+                    
+                default:
+                    break;
+            }
+            }
+                       
+            break;
+        case 1:
+            cell.MyLbl1.frame=CGRectMake(10, 0, 90, 70);
+            
+            cell.myLbl2.frame=CGRectMake(120, 0, 200, 70);
+            
+            cell.MyLbl1.text=@"Address";
+            cell.myLbl2.text=[[arrlist objectAtIndex:0]valueForKey:@"add"];
+            
+            break;
+        case 2:
+            cell.MyLbl1.text=@"Email";
+            cell.myLbl2.text=[[arrlist objectAtIndex:0]valueForKey:@"email"];            
+            break; 
+        case 3:
+            cell.MyLbl1.text=@"Birthdate";
+            cell.myLbl2.text=[[arrlist objectAtIndex:0]valueForKey:@"date"];
+            
+            break;
+        case 4:
+            cell.MyLbl1.text=@"Text tone";
+            cell.myLbl2.text=[[arrlist objectAtIndex:0]valueForKey:@"notes"];
+            
+            break;
+        default:
+            break;
+    }
+   
+    return cell;
+    
+}
+
+
+/*
+// Override to allow orientations other than the default portrait orientation.
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    // Return YES for supported orientations
+    return (interfaceOrientation == UIInterfaceOrientationPortrait);
+}
+*/
+
+
+- (void)viewDidUnload {
+    [super viewDidUnload];
+    // Release any retained subviews of the main view.
+    // e.g. self.myOutlet = nil;
+}
+
+- (void)dealloc {
+    [super dealloc];
+	[arrlist release];
+	[objdatabase release];
+}
+
+
+@end

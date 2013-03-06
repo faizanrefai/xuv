@@ -1,0 +1,529 @@
+//
+//  Service_Listing.m
+//  HairStyleProj
+//
+//  Created by Vivek Rajput on 8/4/11.
+//  Copyright 2011 __MyCompanyName__. All rights reserved.
+//
+
+#import "Service_Listing.h"
+
+#import "Add_Service.h"
+#import "Client_History_More.h"
+#import "Client_History.h"
+#import "Edit_Service.h"
+#import "Repeat_Service.h"
+@implementation Service_Listing
+@synthesize navi,tblservicelisting;
+@synthesize countries;
+@synthesize selectedArray;
+@synthesize inPseudoEditMode;
+@synthesize selectedImage;
+@synthesize unselectedImage;
+
+/*
+ // The designated initializer.  Override if you create the controller programmatically and want to perform customization that is not appropriate for viewDidLoad.
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
+        // Custom initialization
+    }
+    return self;
+}
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+- (void)populateSelectedArray
+{
+	NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity:[arrservicelist count]];
+	for (int ia=0; ia < [arrservicelist count]; ia++)
+		[array addObject:[NSNumber numberWithBool:NO]];
+	self.selectedArray = array;
+	[array release];
+	
+}
+
+
+
+
+
+
+-(NSInteger) numberOfSectionsInTableView:(UITableView *)tableView{
+
+	return 1;
+	
+}
+-(NSInteger) tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section{
+
+	return [arrservicelist count];
+	
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{	
+	
+    static NSString *CellTableIdentifier = @"CellTableIdentifier";
+	
+	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellTableIdentifier];
+    
+    
+   
+    
+    
+	if (cell == nil) {
+		
+//		CGRect cellFrame = CGRectMake(0,0,300,65);
+		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellTableIdentifier];
+                
+		
+		UILabel *label = [[UILabel alloc] initWithFrame:kLabelRect2];
+		label.tag = kCellLabelTag;
+        label.font=[UIFont fontWithName:@"Arial" size:17.0];
+        
+		[cell.contentView addSubview:label];
+		[label release];
+		
+		CGRect nameLabelRect = CGRectMake(250,15,200,15);
+		UILabel *nameLabel = [[UILabel alloc] initWithFrame:nameLabelRect];		
+		nameLabel.tag=kNameValueTag;
+		nameLabel.backgroundColor=[UIColor clearColor];
+		nameLabel.font=[UIFont fontWithName:@"Arial" size:14];
+		nameLabel.textAlignment = UITextAlignmentLeft;
+		//nameLabel.font = [UIFont boldSystemFontOfSize:18];
+        
+		[cell.contentView addSubview: nameLabel];
+		[nameLabel release];
+		
+		UIImageView *imageView = [[UIImageView alloc] initWithImage:unselectedImage];
+		imageView.frame = CGRectMake(5.0, 10.0, 20.0, 20.0);
+		[cell.contentView addSubview:imageView];
+		imageView.hidden = !inPseudoEditMode;
+		imageView.tag = kCellImageViewTag;
+		[imageView release];
+		
+        
+        
+     
+	}
+   // cell.backgroundView = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"cell.png"]] autorelease];
+  
+		UILabel *name = (UILabel *)[cell.contentView viewWithTag:kNameValueTag];
+	name.text =[NSString stringWithFormat:@"$%@",[[arrservicelist objectAtIndex:indexPath.row]valueForKey:@"price"]];
+    name.font=[UIFont fontWithName:@"Arial" size:14];
+    name.font=[UIFont boldSystemFontOfSize:14];
+    
+    name.textColor=[UIColor blackColor];
+    
+	UILabel *label = (UILabel *)[cell.contentView viewWithTag:kCellLabelTag];
+	label.text = [[arrservicelist objectAtIndex:indexPath.row]valueForKey:@"name"];
+	label.backgroundColor=[UIColor clearColor];
+	label.textColor=[UIColor blackColor];
+    label.font=[UIFont fontWithName:@"Arial" size:14];
+	label.font=[UIFont boldSystemFontOfSize:14];
+    
+    
+    label.frame = (inPseudoEditMode) ? kLabelIndentedRect2 : kLabelRect2;
+	label.opaque = NO;
+   // cell.selectionStyle=UITableViewCellSelectionStyleNone;
+    
+	
+	UIImageView *imageView = (UIImageView *)[cell.contentView viewWithTag:kCellImageViewTag];
+	NSNumber *selected = [selectedArray objectAtIndex:[indexPath row]];
+	imageView.image = ([selected boolValue]) ? selectedImage : unselectedImage;
+	imageView.hidden = !inPseudoEditMode;
+	[UIView commitAnimations];
+	
+		return cell;
+		
+	
+}
+
+-(void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+	//
+//	total=(total + [[(NSDictionary *)[self.catchArray objectAtIndex:indexPath.row]valueForKey:@"price"]intValue]);
+//	
+//	lblcount.text=[NSString stringWithFormat:@"%d",total];
+//	
+	
+	[self.tblservicelisting deselectRowAtIndexPath:indexPath animated:YES];
+	if (inPseudoEditMode)
+	{
+		BOOL selected = [[selectedArray objectAtIndex:[indexPath row]] boolValue];
+		[selectedArray replaceObjectAtIndex:[indexPath row] withObject:[NSNumber numberWithBool:!selected]];
+		[tableView reloadData];
+			
+			
+	if(selected)
+	{
+	total=(total - [[(NSDictionary *)[arrservicelist objectAtIndex:indexPath.row]valueForKey:@"price"]intValue]);
+		lblcount.text=[NSString stringWithFormat:@"$%d",total];
+		
+	}
+	else {
+		total=(total + [[(NSDictionary *)[arrservicelist objectAtIndex:indexPath.row]valueForKey:@"price"]intValue]);
+		
+		lblcount.text=[NSString stringWithFormat:@"$%d",total];
+		
+	}
+
+	}
+	
+	
+}
+//- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
+//{
+//    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+//    if (self) {
+//         self.hidesBottomBarWhenPushed=TRUE;
+//    }
+//    return self;
+//}
+// Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
+- (void)viewDidLoad {
+	
+	
+	
+		
+    [super viewDidLoad];
+   // tblservicelisting.frame=CGRectMake(0, 0, 320, 460);
+   // [self initWithNibName:@"Service_Listing" bundle:nil];
+    
+    //self.hidesBottomBarWhenPushed=TRUE;
+	
+	
+}
+-(void)showdata
+{
+    arrservicelist=[[NSMutableArray alloc]init];
+    
+    
+    [objdatabase ShowDataForService];
+    [arrservicelist addObjectsFromArray:objdatabase.catchArray];
+    
+    
+    if ([arrservicelist count]> 0)
+    {
+        
+        BtnPre.enabled=TRUE;
+        
+    }
+    else{
+        
+        BtnPre.enabled=FALSE;
+        
+        
+    }
+    
+    
+    [tblservicelisting reloadData];
+    
+
+	
+
+}
+
+
+-(void) viewWillAppear:(BOOL)animated{
+	BtnPre.hidden=FALSE;
+	BtnNxt.hidden=FALSE;
+	objappdel=(Hiar_Style_NewAppDelegate *)[[UIApplication sharedApplication]delegate];
+//    self.hidesBottomBarWhenPushed=TRUE;
+    
+    
+    //objappdel.tabmainsub.view.hidden=TRUE;
+    
+    
+	//[objappdel createEditableCopyOfDatabaseIfNeeded];
+	objdatabase=[[DataBase alloc]init];
+
+    
+    
+  
+	self.navigationController.navigationBar.hidden=TRUE;
+	
+	self.navigationController.navigationBar.tintColor=[UIColor blackColor];
+	
+	self.view.backgroundColor=[UIColor groupTableViewBackgroundColor];
+	//tblservicelisting.backgroundColor=[UIColor clearColor];
+	
+	self.title=@"Service Listing";
+	self.inPseudoEditMode = YES;
+	
+	self.selectedImage = [UIImage imageNamed:@"selected.png"];
+	self.unselectedImage = [UIImage imageNamed:@"unselected.png"];
+	
+	arr=[[NSArray alloc] initWithObjects:@"Service1",@"Service2",@"Service3",nil];
+	
+	
+	BtnPre = [UIButton buttonWithType:UIButtonTypeCustom];
+	[BtnPre addTarget:self action:@selector(ButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+	//BtnPre.titleLabel.text=@"Edit";
+	
+	//[BtnPre setTitle:@"Edit" forState:UIControlStateNormal];
+	[BtnPre setBackgroundImage:[UIImage imageNamed:@"editbarbutton.png"] forState:UIControlStateNormal];
+	
+    BtnPre.frame = CGRectMake(220, 7, 50, 30);
+    [self.navi addSubview:BtnPre];
+	  [self showdata];
+    [self populateSelectedArray];
+	
+
+	[tblservicelisting  reloadData];
+    
+lblcount.text=@"";
+    
+	
+}
+- (void)viewDidDisappear:(BOOL)animated; 
+{
+	
+	BtnPre.hidden=TRUE;
+	BtnNxt.hidden=TRUE;
+	
+	
+}	
+
+- (IBAction)doDelete{
+
+   // [self.navigationController popViewControllerAnimated:YES];
+    
+   // objappdel.window.rootViewController = objappdel.tabmainsub;
+    
+    
+    CGRect newFrame = objappdel.tabmainsub.view.frame;
+    newFrame.size.height -= objappdel.tabmainsub.tabBar.frame.size.height;
+    objappdel.tabmainsub.view.frame = newFrame;
+
+    if(objclient)
+    {
+    
+        [objclient  release];
+        
+    }
+    objclient=[[Client_History_More alloc]initWithNibName:@"Client_History_More" bundle:nil];
+    
+    [self.navigationController pushViewController:objclient animated:YES];
+    
+}
+
+
+
+-(IBAction)done:(id)sender{
+	NSMutableArray *rowsToBeDeleted = [[NSMutableArray alloc] init];
+	NSMutableArray *indexPaths = [[NSMutableArray alloc] init];
+	int index = 0;
+	for (NSNumber *rowSelected in selectedArray)
+	{
+		if ([rowSelected boolValue])
+		{
+			
+			strname=[(NSDictionary *)[arrservicelist objectAtIndex:index]valueForKey:@"name"];
+			strprice=[(NSDictionary *)[arrservicelist objectAtIndex:index]valueForKey:@"price"];
+			
+			
+			NSDate *now = [NSDate date];
+			
+			NSDate *earlierDate = now;
+			
+			////nslog(@"%@",earlierDate);
+			
+			
+			
+			NSString *strDate = [[NSString alloc] initWithFormat:@"%@",earlierDate];
+			NSArray *arrdate = [strDate componentsSeparatedByString:@" "];
+			NSString *str;
+			str = [arrdate objectAtIndex:0];
+			//nslog(@"strdate: %@",str); // strdate: 2011-02-28
+			
+			strdate=str;
+			
+            [strDate release];
+            if ([objappdel.strdate isEqualToString:@"(null"] || objappdel.strdate==nil || [objappdel.strdate isEqualToString:@""])
+            {
+                objappdel.strdate=strdate;
+                
+            
+            }
+            
+            [objdatabase InsertintoServiceDetails:objappdel.strdate :strname :strprice :lblcount.text];
+            
+			
+			
+
+			
+			
+			
+			
+		}		
+		index++;
+	}
+	
+	for (id value in rowsToBeDeleted)
+	{
+		[arrservicelist removeObject:value];
+	}
+	
+	[self.tblservicelisting deleteRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationFade];
+	
+	[indexPaths release];
+	[rowsToBeDeleted release];
+	inPseudoEditMode = NO;
+	[self populateSelectedArray];
+	[self.tblservicelisting reloadData];
+	[self updateAddClientLastdate];
+    
+    
+    CGRect newFrame = objappdel.tabmainsub.view.frame;
+    newFrame.size.height -= objappdel.tabmainsub.tabBar.frame.size.height;
+    objappdel.tabmainsub.view.frame = newFrame;
+    
+    if(objclient)
+    {
+        
+        [objclient  release];
+        
+    }
+    objclient=[[Client_History_More alloc]initWithNibName:@"Client_History_More" bundle:nil];
+    
+    [self.navigationController pushViewController:objclient animated:YES];    
+    
+  //  objappdel.window.rootViewController = objappdel.tabmainsub;
+    
+    
+ //   [self.navigationController popViewControllerAnimated:YES];
+    
+
+}
+
+-(void)updateAddClientLastdate{
+
+	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+	NSString *documentsDirectory = [paths objectAtIndex:0];
+	NSString *path = [documentsDirectory stringByAppendingPathComponent:@"Hairstyle.sqlite"];
+	
+	if (sqlite3_open([path UTF8String], &database) == SQLITE_OK) 
+	{
+		int ia;
+		ia=[objappdel.idvalue intValue];
+		//nslog(@"%d",ia);
+		
+		static sqlite3_stmt *statement;
+		statement = nil;
+		
+		NSString *sql=[NSString stringWithFormat:@"update AddClient set LastServiceList='%@' where Cid=%d",objappdel.strdate,ia ];
+		
+		if(sqlite3_prepare_v2(database, [sql UTF8String] , -1, &statement, NULL) == SQLITE_OK)
+		{
+			
+			            
+		}
+		else
+		{
+			
+			NSAssert1(0, @"Error while creating insert statement. '%s'", sqlite3_errmsg(database));
+		}
+		
+		if(sqlite3_step(statement) == SQLITE_DONE) 
+		{
+			sqlite3_finalize(statement);
+			
+			
+		}
+		else
+		{
+			NSAssert1(0, @"Error while inserting. '%s'", sqlite3_errmsg(database));
+		}
+		sqlite3_close(database);
+		
+	}
+	else 
+	{
+		sqlite3_close(database);
+		NSAssert1(0, @"Failed to open database with message '%s'.", sqlite3_errmsg(database));
+	}
+	
+	
+    
+
+}
+
+-(IBAction)ButtonPressed:(id)sender
+{
+		
+	if(objEditService)
+    {
+    
+        [objEditService release];
+        
+    
+    }
+    objEditService=[[Edit_Service alloc]initWithNibName:@"Edit_Service" bundle:nil];
+    [self.navigationController pushViewController:objEditService animated:YES];
+       
+	
+		
+	
+}
+
+-(IBAction)buttonClicked2:(id)sender{
+if(objAddService)
+{
+
+    [objAddService release];
+    
+
+}
+    
+   objappdel.strname=@"new";
+    
+	objAddService=[[Add_Service alloc]initWithNibName:@"Add_Service" bundle:nil];
+    [self.navigationController pushViewController:objAddService animated:YES];
+        
+
+}
+
+/*
+// Override to allow orientations other than the default portrait orientation.
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    // Return YES for supported orientations
+    return (interfaceOrientation == UIInterfaceOrientationPortrait);
+}
+*/
+
+- (void)didReceiveMemoryWarning {
+    // Releases the view if it doesn't have a superview.
+    [super didReceiveMemoryWarning];
+    
+    // Release any cached data, images, etc that aren't in use.
+}
+
+- (void)viewDidUnload {
+    [super viewDidUnload];
+    // Release any retained subviews of the main view.
+    // e.g. self.myOutlet = nil;
+}
+
+
+- (void)dealloc {
+    [super dealloc];
+	
+	[countries release];
+	[selectedArray release];
+     [objdatabase release];
+    [arrservicelist release];
+    
+	[arr release];
+	
+}
+
+
+@end

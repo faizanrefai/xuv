@@ -1,0 +1,402 @@
+//
+//  Client_History.m
+//  Hiar_Style_New
+//
+//  Created by Vivek Rajput on 8/16/11.
+//  Copyright 2011 __MyCompanyName__. All rights reserved.
+//
+#import "Hiar_Style_NewAppDelegate.h"
+
+#import "Client_History.h"
+#import "ContactDetail.h"
+#import "Client_History_More.h"
+#import "Service_Listing.h"
+
+@implementation Client_History
+@synthesize tblclienthistory,navi;
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 1;
+}
+
+
+// Customize the number of rows in the table view.
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return [arrlistName count];
+}
+-(CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+
+	return 65;
+	
+}
+
+// Customize the appearance of table view cells.
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+	static NSString *CellTableIdentifier = @"CellTableIdentifier";
+    
+      
+	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellTableIdentifier];
+	if (cell == nil) {
+       
+		CGRect cellFrame = CGRectMake(0,0,300,65);
+		cell = [[[UITableViewCell alloc] initWithFrame: cellFrame
+									   reuseIdentifier:CellTableIdentifier] autorelease];
+        
+        
+        
+        
+		
+		imgview=[[UIImageView alloc]init];
+		imgview.frame=CGRectMake(3, 3, 70, 59);
+		imgview.tag=7;
+		imgview.image=[UIImage imageNamed:@"Demo.png"];
+		imgview.backgroundColor=[UIColor clearColor];
+		[cell.contentView addSubview:imgview];
+		[imgview release];
+		
+		
+		
+		
+		
+		CGRect nameLabelRect = CGRectMake(80,10,200,15);
+		UILabel *nameLabel = [[UILabel alloc] initWithFrame:nameLabelRect];		
+		nameLabel.tag=kNameValueTag;
+		nameLabel.backgroundColor=[UIColor clearColor];
+		
+		nameLabel.textAlignment = UITextAlignmentLeft;
+		//nameLabel.font = [UIFont boldSystemFontOfSize:12];
+		
+        
+        nameLabel.font=[UIFont fontWithName:@"Arial" size:14];
+        
+        [cell.contentView addSubview: nameLabel];
+		[nameLabel release];		
+		
+		CGRect colorLabelRect = CGRectMake(80,40,200,15);
+		UILabel *lbldescr = [[UILabel alloc] initWithFrame:colorLabelRect];	
+		lbldescr.tag = kColorValueTag;
+		lbldescr.backgroundColor=[UIColor clearColor];
+		
+		lbldescr.textAlignment = UITextAlignmentLeft;
+		//lbldescr.font = [UIFont boldSystemFontOfSize:12];
+		lbldescr.font=[UIFont fontWithName:@"Arial" size:14];
+        
+        
+        [cell.contentView addSubview: lbldescr];
+		[lbldescr release];				
+		
+		CGRect nameValueRect = CGRectMake(200,10,200,15);
+		UILabel *lblprice = [[UILabel alloc] initWithFrame:nameValueRect];				
+		lblprice.backgroundColor=[UIColor clearColor];
+		lblprice.tag = kpriceValueTag;
+        lblprice.font=[UIFont fontWithName:@"Arial" size:14];
+        
+		[cell.contentView addSubview:lblprice];
+		[lblprice release];
+		
+		CGRect colorValueRect = CGRectMake(200,40,200,15);
+		UILabel *lbldate = [[UILabel alloc] initWithFrame:colorValueRect];		
+		lbldate.backgroundColor=[UIColor clearColor];
+        lbldate.font=[UIFont fontWithName:@"Arial" size:14];
+        
+		
+		lbldate.tag = kdateValueTag;
+		 
+		[cell.contentView addSubview:lbldate];
+		[lbldate release];			
+			
+		UIImageView *selectedBackground = [[UIImageView alloc] initWithFrame:CGRectMake(0,0, 320,100)];
+		selectedBackground.backgroundColor = [UIColor orangeColor];
+		[cell setSelectedBackgroundView:selectedBackground];
+		[selectedBackground release];
+        
+		//cell.accessoryType=UITableViewCellAccessoryDisclosureIndicator;
+		
+	
+	}
+   // cell.backgroundView = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"cell.png"]] autorelease];
+
+    [cell.textLabel setBackgroundColor:[UIColor clearColor]];
+    
+  //  cell.selectionStyle=UITableViewCellSelectionStyleNone;
+    
+        
+     [self showimage:[(NSDictionary *)[arrlistName objectAtIndex:indexPath.row]valueForKey:@"date"]];
+    if([arrlistImage count]>0){
+        
+        
+	NSArray *dirArray = NSSearchPathForDirectoriesInDomains(NSCachesDirectory,    NSUserDomainMask, YES);
+	NSString *path = [NSString stringWithFormat:@"%@/%@", [dirArray objectAtIndex:0],[(NSDictionary *)[arrlistImage objectAtIndex:0]valueForKey:@"name"]];
+	
+	NSData *imageData = [[NSData alloc] initWithContentsOfURL:[NSURL fileURLWithPath:path]];
+	image = [[UIImage alloc] initWithData:imageData];
+	[imgview setImage:[self resizeImage:image width:imgview.frame.size.width height:imgview.frame.size.height]];
+        
+        if(image.imageOrientation==UIImageOrientationRight)
+        {
+            
+            imgview.transform=CGAffineTransformMakeRotation(M_PI / 2);
+            
+            imgview.frame=CGRectMake(3, 3, 70, 59);
+            
+        }
+        
+        else{
+            
+            imgview.transform=CGAffineTransformMakeRotation(M_PI * 2 );
+             imgview.frame=CGRectMake(3, 3, 70, 59);
+            
+        }
+        [imageData release];
+        [image release];
+        image=nil;
+
+        
+	//nslog(@"%@",path);
+	//nslog(@"%@",arrlistNameImage);
+	}
+    else{
+    
+        imgview.image=nil;
+        
+    }
+	
+
+	
+	
+	UILabel *name = (UILabel *)[cell.contentView viewWithTag:kNameValueTag];
+	name.text = [[arrlistName objectAtIndex:indexPath.row]valueForKey:@"name"];
+
+    name.textColor=[UIColor blackColor];
+    name.font=[UIFont fontWithName:@"Arial" size:17];
+    name.font=[UIFont boldSystemFontOfSize:17];
+    
+		 
+		 UILabel *descr = (UILabel *)[cell.contentView viewWithTag:kColorValueTag];	
+	descr.text = @"Description";
+	//[(NSDictionary *)[arrlistName objectAtIndex:indexPath.row]valueForKey:@"lname"];
+    descr.textColor=[UIColor darkGrayColor];
+    
+	
+	UILabel *price = (UILabel *)[cell.contentView viewWithTag:kpriceValueTag];	
+	price.text = [NSString stringWithFormat:@"$%@",[[arrlistName objectAtIndex:indexPath.row]valueForKey:@"price"]];
+    price.textColor=[UIColor blackColor];
+    price.font=[UIFont fontWithName:@"Arial" size:17];
+    
+    price.font=[UIFont boldSystemFontOfSize:17];
+    
+	
+	UILabel *date = (UILabel *)[cell.contentView viewWithTag:kdateValueTag];	
+	date.text = [[arrlistName objectAtIndex:indexPath.row]valueForKey:@"date"];
+    date.textColor=[UIColor blueColor];
+    
+    date.font=[UIFont fontWithName:@"Arial" size:14];
+    
+	// Configure the cell.
+	
+    return cell;
+}
+-(UIImage *)resizeImage:(UIImage *)image3 width:(int)width height:(int)height {
+	
+	CGImageRef imageRef = [image3 CGImage];
+	CGImageAlphaInfo alphaInfo = CGImageGetAlphaInfo(imageRef);
+	
+	//if (alphaInfo == kCGImageAlphaNone)
+    alphaInfo = kCGImageAlphaNoneSkipLast;
+	
+	CGContextRef bitmap = CGBitmapContextCreate(NULL, width, height, CGImageGetBitsPerComponent(imageRef), 4 * width, CGImageGetColorSpace(imageRef), alphaInfo);
+	CGContextDrawImage(bitmap, CGRectMake(0, 0, width, height), imageRef);
+	CGImageRef ref = CGBitmapContextCreateImage(bitmap);
+	UIImage *result = [UIImage imageWithCGImage:ref];
+	
+	CGContextRelease(bitmap);
+	CGImageRelease(ref);
+	
+	return result;	
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+	objappdel.strdate=[(NSDictionary *)[arrlistName objectAtIndex:indexPath.row]valueForKey:@"date"];
+
+	
+    if(objclientHistory)
+    {
+        [objclientHistory release];
+        
+    
+    }
+	objclientHistory = [[Client_History_More alloc] initWithNibName:@"Client_History_More" bundle:nil];
+    
+
+	[self.navigationController pushViewController:objclientHistory animated:YES];
+       
+	
+}
+
+
+/*
+ // The designated initializer.  Override if you create the controller programmatically and want to perform customization that is not appropriate for viewDidLoad.
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
+        // Custom initialization
+    }
+    return self;
+}
+*/
+
+-(void)viewWillAppear:(BOOL)animated{
+    objappdel=(Hiar_Style_NewAppDelegate *)[[UIApplication sharedApplication]delegate];
+	//[objappdel createEditableCopyOfDatabaseIfNeeded];
+	objdatabase=[[DataBase alloc]init];
+    
+    arrlistName=[[NSMutableArray alloc]init];
+    arrlistImage=[[NSMutableArray alloc]init];
+    
+    
+    
+    [self showdata];
+	//[self showimage];
+    [tblclienthistory reloadData];
+    
+
+}
+// Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
+- (void)viewDidLoad 
+{
+    
+    [super viewDidLoad];
+    self.navigationController.navigationBar.hidden=TRUE;
+	
+	
+		
+	self.view.backgroundColor=[UIColor groupTableViewBackgroundColor];
+	
+
+	
+	
+}
+
+-(void)showimage:(NSString *)date{
+	
+    NSString *strquery;
+    strquery =[NSString stringWithFormat:@"where CID=%@ AND Date='%@'",objappdel.idvalue,date];
+     
+    [objdatabase ShowDataForImage:strquery];
+    [arrlistImage addObjectsFromArray:objdatabase.catchArray];
+    
+    
+	
+}
+
+-(void)showdata{
+	
+    int number;
+    
+    
+    
+    number=[[[NSUserDefaults standardUserDefaults]valueForKey:@"NumberofData"] intValue];
+    
+    if(number==0)
+    {
+        number=10;
+        
+    
+    }
+    
+    NSString *s = [NSString stringWithFormat:@"where CID=%@ AND Favorite='True' Group By Date  ORDER BY Date DESC LIMIT %d",objappdel.idvalue,number];
+    NSLog(@"%@",s);
+    
+	    [objdatabase ShowDataForServiceDetails:s];
+
+        [arrlistName addObjectsFromArray:objdatabase.catchArray];
+    
+    
+    if ([arrlistName count]> 0)
+    {
+        
+        btnedit.enabled=TRUE;
+              
+    }
+    else{
+    
+        btnedit.enabled=FALSE;
+        
+        
+    }
+    
+    
+	
+}
+-(IBAction)searchResult1_clicked:(id)sender
+{
+	if(tblclienthistory.editing==FALSE)
+    {
+    tblclienthistory.editing=TRUE;
+        btnedit.title   =@"Done";
+        btnedit.style=UIBarButtonItemStyleDone;
+        
+    }
+    else{
+        btnedit.style=UIBarButtonItemStyleBordered;
+        
+        tblclienthistory.editing=FALSE;
+        btnedit.title   =@"Edit";
+        
+
+    
+    }
+	
+	
+}
+
+
+-(void) tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath{
+	
+		NSString *i;
+	i=[NSString stringWithFormat:@"'%@' AND CID=%@",[(NSDictionary *)[arrlistName objectAtIndex:indexPath.row]valueForKey:@"date"],objappdel.idvalue];
+    
+    
+       
+
+	////nslog(@"%d",i);
+	[objdatabase DeleteData:@"Service_Detail" :@"Date" :i];
+    
+	
+	[self viewWillAppear:YES];
+    
+}
+
+/*
+// Override to allow orientations other than the default portrait orientation.
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    // Return YES for supported orientations
+    return (interfaceOrientation == UIInterfaceOrientationPortrait);
+}
+*/
+
+- (void)didReceiveMemoryWarning {
+    // Releases the view if it doesn't have a superview.
+    [super didReceiveMemoryWarning];
+    
+    // Release any cached data, images, etc that aren't in use.
+}
+
+- (void)viewDidUnload {
+    [super viewDidUnload];
+    // Release any retained subviews of the main view.
+    // e.g. self.myOutlet = nil;
+}
+
+
+- (void)dealloc {
+    [super dealloc];
+
+    [objdatabase release];
+    [arrlistName release];
+    [arrlistImage release];
+    
+	
+}
+
+
+@end

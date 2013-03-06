@@ -1,0 +1,410 @@
+//
+//  SettingHome.m
+//  Hiar_Style_New
+//
+//  Created by Vivek Rajput on 8/11/11.
+//  Copyright 2011 __MyCompanyName__. All rights reserved.
+//
+
+#import "SettingHome.h"
+#import "About_Hairworx.h"
+
+
+@implementation SettingHome
+
+/*
+ // The designated initializer.  Override if you create the controller programmatically and want to perform customization that is not appropriate for viewDidLoad.
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
+        // Custom initialization
+    }
+    return self;
+}
+*/
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 2;
+}
+
+// Customize the number of rows in the table view.
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    if (section == 0) {
+        return 7;
+    }
+    else
+    {
+        return 1;
+    }
+}
+
+// Customize the appearance of table view cells.
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+	
+	static NSString *CellTableIdentifier = @"CellTableIdentifier";
+	
+	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellTableIdentifier];
+	if (cell == nil) {
+		
+		//CGRect cellFrame = CGRectMake(0,0,300,65);
+		 
+        
+        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:CellTableIdentifier] autorelease];
+        
+        
+        CGRect nameLabelRect = CGRectMake(180,15,200,15);
+		UILabel *nameLabel = [[UILabel alloc] initWithFrame:nameLabelRect];		
+		nameLabel.tag=kNameValueTag;
+		nameLabel.backgroundColor=[UIColor clearColor];
+		nameLabel.textColor=[UIColor blackColor];
+        
+		nameLabel.textAlignment = UITextAlignmentLeft;
+		nameLabel.font = [UIFont fontWithName:@"Arial" size:14.0];
+		[cell.contentView addSubview: nameLabel];
+		[nameLabel release];		
+        
+        
+		onoff = [[UISwitch alloc] initWithFrame:  CGRectMake(180,10,200,15)];
+
+        [onoff addTarget: self action: @selector(flip:) forControlEvents: UIControlEventValueChanged];
+        onoff.tag=indexPath.row;
+        
+        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        [cell.contentView addSubview:onoff];
+        [onoff release];
+        
+		//lblvalue= (UILabel *)[cell.contentView viewWithTag:kNameValueTag];
+		//lblvalue.text=[arrformula objectAtIndex:indexPath.row];
+	}
+    //cell.backgroundView = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"cell.png"]] autorelease];
+    
+   // cell.selectionStyle=UITableViewCellSelectionStyleNone;
+    
+	cell.textLabel.textColor=[UIColor blackColor];
+    UILabel *name = (UILabel *)[cell.contentView viewWithTag:kNameValueTag];
+    cell.textLabel.font=[UIFont fontWithName:@"Arial" size:14.0];
+    cell.textLabel.font=[UIFont boldSystemFontOfSize:14.0];
+    name.textColor=[UIColor blueColor];
+    
+    if(indexPath.section == 0) {
+    
+    switch (indexPath.row) {
+		case 0:
+			cell.textLabel.text=@"BackUp Data";
+            name.text=@"Every Week";
+            
+			onoff.hidden=TRUE;
+            
+			break;
+		case 1:
+            
+            cell.textLabel.text=@"Contacts";
+            onoff.hidden=TRUE;
+            
+			break;
+		case 2:
+			cell.textLabel.text=@"Email";
+			onoff.hidden=TRUE;
+            
+            break;
+		case 3:
+			cell.textLabel.text=@"Password Lock";
+            cell.accessoryType =UITableViewCellAccessoryNone;
+
+            if([[[NSUserDefaults standardUserDefaults] valueForKey:@"Password"] isEqualToString:@"On"])
+            {
+                [onoff setOn:YES animated:YES];
+            }
+            else{
+            
+                [onoff setOn:FALSE animated:YES];
+            }
+			
+			break;
+		
+		case 4:
+			cell.textLabel.text=@"Picture Fill Size";
+			onoff.hidden=TRUE;
+            name.text=@"Medium";
+            
+			
+			break;
+		case 5:
+			cell.textLabel.text=@"Viewable Record";
+			onoff.hidden=TRUE;
+			name.text=[[NSUserDefaults standardUserDefaults]valueForKey:@"NumberofData"];
+			break;
+            
+        case 6:
+			cell.textLabel.text=@"Set Notification";
+            cell.accessoryType =UITableViewCellAccessoryNone;
+
+            if([[[NSUserDefaults standardUserDefaults] valueForKey:@"Nottification"] isEqualToString:@"On"])
+            {
+                [onoff setOn:YES animated:YES];
+            }
+            else{
+                [onoff setOn:FALSE animated:YES];
+            }
+            break;
+
+        default:
+		break;
+}
+    }
+    else
+    {
+        onoff.hidden=TRUE;
+        cell.textLabel.text=@"About HairWorx";
+    }
+	//cell.accessoryType=UITableViewCellAccessoryDisclosureIndicator;
+	
+	return cell;
+	// Configure the cell.
+	
+}
+
+
+
+
+
+-(IBAction)flip:(id)sender{
+    onoff1 = (UISwitch *) sender;
+    NSLog(@"tag value %d",onoff1.tag);
+    if(onoff1.tag==3)
+    {
+   if(onoff1.on)
+   {
+        
+        [[NSUserDefaults standardUserDefaults] setValue:@"On" forKey:@"Password"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        //				 [[NSUserDefaults standardUserDefaults] setValue:@"Lock" forKey:@"Lock"];
+        
+        UIAlertView *myAlertView = [[UIAlertView alloc] initWithTitle:@"Please Enter Password!" message:@"Hello" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK", nil];
+        myTextField.delegate=self;
+        
+        myTextField = [[UITextField alloc] initWithFrame:CGRectMake(12.0, 45.0, 260.0, 25.0)];
+        myTextField.secureTextEntry=YES;
+        
+        [myTextField setBackgroundColor:[UIColor blackColor]];
+        [myAlertView addSubview:myTextField];
+        [myAlertView show];
+        [myAlertView release];
+        
+        setting=YES;
+    }
+    else
+    {
+        
+        [[NSUserDefaults standardUserDefaults] setValue:@"Off" forKey:@"Password"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        setting=NO;
+        
+    }
+    }
+    
+	
+if(onoff1.tag==6)
+{
+    if (onoff1.on) {
+        [[NSUserDefaults standardUserDefaults] setValue:@"On" forKey:@"Nottification"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }
+    else{
+        [[NSUserDefaults standardUserDefaults] setValue:@"off" forKey:@"Nottification"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }
+}
+}
+
+// Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.title=@"Settings";
+	self.view.backgroundColor = [UIColor groupTableViewBackgroundColor];
+	tblsetting.backgroundColor=[UIColor clearColor];
+	UIBarButtonItem *barBtnSearch = [[UIBarButtonItem alloc] initWithTitle:@"Home" style:UIBarButtonItemStyleBordered target:self action:@selector(searchResult1_clicked:)];
+	tblsetting.backgroundColor=[UIColor clearColor];
+	
+	self.navigationItem.leftBarButtonItem = barBtnSearch;
+	self.navigationItem.leftBarButtonItem.enabled = YES;
+	arrlist=[[NSArray alloc]initWithObjects:@"10",@"20",@"50",@"100",@"250", nil];
+    
+	setting=NO;
+}
+
+-(void)viewWillAppear:(BOOL)animated    {
+
+    picker.hidden=TRUE;
+    
+}
+
+-(IBAction)searchResult1_clicked:(id)sender
+{
+	[self.navigationController popViewControllerAnimated:YES];
+    
+}
+
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+	picker.hidden=TRUE;
+    
+    if(indexPath.section == 0) {
+    
+	switch (indexPath.row) {
+		case 0:
+			
+			break;
+			
+		case 1:
+		{
+			
+            if(objContactSetting)
+            {
+                [objContactSetting release];
+            }
+            objContactSetting = [[ContactSetting alloc]initWithNibName:@"ContactSetting" bundle:nil];
+            [self.navigationController pushViewController:objContactSetting animated:YES];
+             
+		}	
+			break;
+		case 2:
+		{
+			if(objEmailSetting)
+            {
+                [objEmailSetting release];
+            }
+            objEmailSetting= [[EmailSetting alloc]initWithNibName:@"EmailSetting" bundle:nil];
+            [self.navigationController pushViewController:objEmailSetting animated:YES];
+				
+		}
+			break;
+		case 3:
+		{
+			//				NSString *attstate;
+//				
+//				attstate = [[NSUserDefaults standardUserDefaults] valueForKey:@"Password"];
+				//nslog(@"%@",attstate);
+				
+        }					
+			
+			break;
+			
+		case 4:
+			break;
+		case 5:
+            picker.hidden=FALSE;
+            picToolbar.hidden = FALSE;
+
+			break;
+        case 6:
+			break;
+			
+		default:
+			break;
+	}
+    }
+    else
+    {
+        if(objAbout_Hairworx)
+        {
+            
+            [objAbout_Hairworx release];
+            
+        }
+        objAbout_Hairworx = [[About_Hairworx alloc] initWithNibName:@"About_Hairworx" bundle:nil];
+        [self.navigationController pushViewController:objAbout_Hairworx animated:YES];
+        
+    }
+	
+	
+}
+-(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex   {
+    
+    if (buttonIndex==1) {
+        NSLog(@"hiii%@",myTextField.text);
+        
+        
+        if(myTextField.text==nil || [myTextField.text isEqualToString:@""])
+        {
+        
+            UIAlertView *alert1=[[UIAlertView alloc]initWithTitle:@"Error" message:@"Please Enter Password" delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles:nil, nil];
+            [alert1 show];
+            [alert1 release];
+        
+        }
+        else{
+            
+        [[NSUserDefaults standardUserDefaults] setValue:myTextField.text forKey:@"LockPassword"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        }
+    }
+    else{
+        
+        [[NSUserDefaults standardUserDefaults] setValue:@"Off" forKey:@"Password"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        
+    }
+    [tblsetting reloadData];
+    
+}
+
+#pragma Mark Pickerview #pragma mark -
+
+- (NSInteger)numberOfComponentsInPickerView:(UIPickerView *)pickerView;
+{
+    return 1;
+}
+- (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component
+{
+    
+    [[NSUserDefaults standardUserDefaults]setValue:[arrlist objectAtIndex:row] forKey:@"NumberofData"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+
+    [tblsetting reloadData];
+    
+}
+
+- (NSInteger)pickerView:(UIPickerView *)pickerView numberOfRowsInComponent:(NSInteger)component;
+{
+    return [arrlist count];
+	
+}
+- (NSString *)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component;
+{
+    return [arrlist objectAtIndex:row];	
+}
+
+-(IBAction)pickerDoneButtonTapped:(id)sender
+{
+    picker.hidden = TRUE;
+    picToolbar.hidden = TRUE;
+}
+
+/*
+// Override to allow orientations other than the default portrait orientation.
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    // Return YES for supported orientations
+    return (interfaceOrientation == UIInterfaceOrientationPortrait);
+}
+*/
+
+- (void)didReceiveMemoryWarning {
+    // Releases the view if it doesn't have a superview.
+    [super didReceiveMemoryWarning];
+    
+    // Release any cached data, images, etc that aren't in use.
+}
+
+- (void)viewDidUnload {
+    [super viewDidUnload];
+    // Release any retained subviews of the main view.
+    // e.g. self.myOutlet = nil;
+}
+
+- (void)dealloc {
+    [super dealloc];
+}
+
+
+@end

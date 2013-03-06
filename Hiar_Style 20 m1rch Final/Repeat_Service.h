@@ -1,0 +1,107 @@
+//
+//  Repeat_Service.h
+//  Hiar_Style_New
+//
+//  Created by Vivek Rajput on 8/17/11.
+//  Copyright 2011 __MyCompanyName__. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "Hiar_Style_NewAppDelegate.h"
+#define kNameValueTag 1
+#import "TableCell.h"
+#import "DataBase.h"
+@class Service_Listing;
+
+#import "Service_Listing.h"
+
+#import "Formulla.h"
+
+
+
+@interface Repeat_Service : UIViewController<UINavigationControllerDelegate,UITextFieldDelegate,UIActionSheetDelegate,UIImagePickerControllerDelegate,UITableViewDelegate,UITableViewDataSource,UITabBarDelegate> {
+    
+    Service_Listing *objservice;
+    
+    Formulla *objFormulla;
+    
+    
+    DataBase *objdatabase;
+    
+    
+	IBOutlet UITabBar *tab;
+	IBOutlet UIScrollView *scrl;
+	IBOutlet UITableView *tblservice;
+	IBOutlet UITableView *tblform;
+	Hiar_Style_NewAppDelegate *objappdel;
+	IBOutlet UIImageView *imageView;
+	
+	NSString *picname1,*picname;
+	NSString *date1,*date2;
+	
+	//IBOutlet UILabel *lbldate;
+
+	IBOutlet UILabel *lblname;
+	
+	IBOutlet UILabel *lbldate;
+	IBOutlet UILabel *lblvalue;
+	IBOutlet UILabel *lblvalue1;
+	IBOutlet UILabel *lblvalue2;
+	IBOutlet UILabel *lblvalue3;
+	IBOutlet UILabel *lblvalue4;
+	IBOutlet UILabel *lblvalue5;
+
+	IBOutlet UILabel *lblprice;
+    
+    NSArray *arr;
+	
+	NSString *str;
+	
+	NSString *str1;
+	
+	NSString *str2;
+	
+	NSString *str3;
+	
+	NSString *str4;
+	
+	IBOutlet UIButton *btnimage1;
+	IBOutlet UIButton *btnimage2;
+	IBOutlet UIButton *btnimage3;
+	IBOutlet UIButton *btnimage4;
+	
+    IBOutlet UILabel *lblusername;
+	IBOutlet UIButton *btnfrml;
+    IBOutlet TableCell *tblViewCell;
+	UILabel *label2;
+    int total;
+    
+    NSMutableArray *arrlistservice;
+    
+    NSMutableArray *arrliformula;
+    
+    
+    int imagetag;
+    
+    BOOL Camera;
+    BOOL Library;
+    
+    
+   
+}
+-(UIImage *)resizeImage:(UIImage *)image width:(int)width height:(int)height;
+
+-(void)saveimage;
+-(void)showdata;
+-(void)showformula;
+
+@property(nonatomic,retain)IBOutlet UIScrollView *scrl;
+@property (nonatomic,retain) TableCell *tblViewCell;
+
+
+-(IBAction)back;
+
+-(IBAction)Add_Photo:(id)sender;
+-(IBAction)select_service:(id)sender;
+-(IBAction)select_formula:(id)sender;
+@end

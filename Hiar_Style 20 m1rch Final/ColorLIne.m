@@ -1,0 +1,270 @@
+//
+//  ColorLIne.m
+//  HairStyleProj
+//
+//  Created by Vivek Rajput on 8/4/11.
+//  Copyright 2011 __MyCompanyName__. All rights reserved.
+//
+
+#import "ColorLIne.h"
+#import "Formulla.h"
+#import "Add_Colorline.h"
+@implementation ColorLIne
+@synthesize navi;
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+	return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+	return [arrColorname count];
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+	static NSString *CellIdentifier = @"Cell";
+    
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    if (cell == nil) {
+        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier] autorelease];
+        
+    }
+	
+    
+    //cell.backgroundView = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"cell.png"]] autorelease];
+ 
+ //   cell.selectionStyle=UITableViewCellSelectionStyleNone;
+    
+	cell.textLabel.font=[UIFont fontWithName:@"Arial" size:14];
+    
+	cell.textLabel.textColor=[UIColor blackColor];
+    cell.textLabel.font=[UIFont boldSystemFontOfSize:14];
+
+    
+	// Set up the cell...
+	cell.textLabel.text = [(NSDictionary *)[arrColorname objectAtIndex:indexPath.row]valueForKey:@"name"];
+
+	return cell;
+}
+- (UITableViewCellEditingStyle)tableView:(UITableView *)tableVieweditingStyleForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return UITableViewCellEditingStyleDelete;
+}
+
+
+-(void) tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath{
+	
+	
+    
+    NSString *i;
+	i=[NSString stringWithFormat:@"'%@'",[(NSDictionary *)[arrColorname objectAtIndex:indexPath.row]valueForKey:@"name"]];
+
+    
+	[objdatabase DeleteData:@"Add_Color" :@"Name" :i];
+    
+    [arrColorname removeObjectAtIndex:indexPath.row];
+    
+    
+    [tblcolorline reloadData];
+    
+    	
+	
+
+}
+
+
+- (IBAction)buttonClicked2:(id)sender
+{
+    [self.navigationController popViewControllerAnimated:YES];
+   	
+		
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+	objappdel.strcolor=[(NSDictionary *)[arrColorname objectAtIndex:indexPath.row]valueForKey:@"name"];
+
+    [self.navigationController popViewControllerAnimated:YES];
+   	//[self.navigationController popViewControllerAnimated:YES];
+	
+}
+
+
+// Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
+- (void)viewDidLoad {
+    [super viewDidLoad];
+		
+		
+	BtnPre = [UIButton buttonWithType:UIButtonTypeCustom];
+	[BtnPre addTarget:self action:@selector(ButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+	//BtnPre.titleLabel.text=@"Edit";
+	
+	//[BtnPre setTitle:@"Edit" forState:UIControlStateNormal];
+	
+    [BtnPre setImage:[UIImage imageNamed:@"editbarbutton.png"] forState:UIControlStateNormal];
+	
+	BtnPre.frame = CGRectMake(220, 7, 50, 30);
+	
+  [self.navi addSubview:BtnPre];
+	
+	
+	
+	
+}
+-(void)showdata
+{
+	
+    
+    [objdatabase ShowData:@"Add_Color" :@""];
+    
+    arrColorname=[[NSMutableArray alloc] init];
+    [arrColorname addObjectsFromArray:objdatabase.catchArray];
+   
+    if([arrColorname count]>0)
+    {
+    
+    }
+    else{
+    
+        BtnPre.enabled=FALSE;
+        
+    }
+    
+}
+
+-(void) viewWillAppear:(BOOL)animated{
+	BtnPre.hidden=FALSE;
+	BtnNxt.hidden=FALSE;
+	objappdel=(Hiar_Style_NewAppDelegate *)[[UIApplication sharedApplication]delegate];
+    
+    objdatabase =[[DataBase alloc]init];
+    
+    
+    
+	[self showdata];
+	self.navigationController.navigationBar.hidden=TRUE;
+	
+	
+	
+	
+	
+	self.title=@"Color Line List";
+	
+	self.view.backgroundColor=[UIColor groupTableViewBackgroundColor];
+	tblcolorline.backgroundColor=[UIColor clearColor];
+    [tblcolorline reloadData];
+    
+	
+}
+- (void)viewDidDisappear:(BOOL)animated; 
+{
+	
+	BtnPre.hidden=TRUE;
+	BtnNxt.hidden=TRUE;
+	
+	
+}
+-(IBAction)ButtonPressed1:(id)sender{
+	
+	tblcolorline.editing=FALSE;
+	//BtnPre.hidden=TRUE;
+	
+	BtnPre = [UIButton buttonWithType:UIButtonTypeCustom];
+	[BtnPre addTarget:self action:@selector(ButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+	//BtnPre.titleLabel.text=@"Edit";
+	//[BtnPre setTitle:@"Edit" forState:UIControlStateNormal];
+	
+	[BtnPre setBackgroundImage:[UIImage imageNamed:@"editbarbutton.png"] forState:UIControlStateNormal];
+	
+	BtnPre.frame = CGRectMake(220, 7, 50, 30);
+	[self.navi addSubview:BtnPre];
+	
+}
+
+-(IBAction)ButtonPressed:(id)sender
+{
+			
+				
+		
+	
+			tblcolorline.editing=TRUE;
+		BtnPre = [UIButton buttonWithType:UIButtonTypeCustom];
+		[BtnPre addTarget:self action:@selector(ButtonPressed1:) forControlEvents:UIControlEventTouchUpInside];
+		//BtnPre.titleLabel.text=@"Edit";
+		[BtnPre setBackgroundImage:[UIImage imageNamed:@"editbarbutton.png"] forState:UIControlStateNormal];
+		//[BtnPre setTitle:@"Done" forState:UIControlStateNormal];
+		
+		BtnPre.frame = CGRectMake(220, 7, 50, 30);
+		[self.navi addSubview:BtnPre];
+		
+		
+	}
+
+
+
+-(IBAction)btnnxt{
+	
+	
+    if(objColorLine)
+    {
+        [objColorLine release];
+        
+    
+    }
+
+    objColorLine=[[Add_Colorline alloc]initWithNibName:@"Add_Colorline" bundle:nil];
+	
+    
+    [self.navigationController pushViewController:objColorLine animated:YES];
+        
+	
+
+}
+
+
+
+/*
+ // The designated initializer.  Override if you create the controller programmatically and want to perform customization that is not appropriate for viewDidLoad.
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
+        // Custom initialization
+    }
+    return self;
+}
+*/
+
+/*
+// Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
+- (void)viewDidLoad {
+    [super viewDidLoad];
+}
+*/
+
+/*
+// Override to allow orientations other than the default portrait orientation.
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    // Return YES for supported orientations
+    return (interfaceOrientation == UIInterfaceOrientationPortrait);
+}
+*/
+
+- (void)didReceiveMemoryWarning {
+    // Releases the view if it doesn't have a superview.
+    [super didReceiveMemoryWarning];
+    
+    // Release any cached data, images, etc that aren't in use.
+}
+
+- (void)viewDidUnload {
+    [super viewDidUnload];
+    // Release any retained subviews of the main view.
+    // e.g. self.myOutlet = nil;
+}
+
+
+- (void)dealloc {
+    [super dealloc];
+     [objdatabase release];
+	}
+
+
+@end
